@@ -44,11 +44,11 @@ class RosIntegration {
     }
 
     void twist_subscriber() {
-        ros::Rate loop_rate(20);
+        ros::Rate loop_rate(100);
         twist_controller_sub =
         n->subscribe("/cmd_vel", 100, twist_controller_callback);
         twist_left_sub = n->subscribe(
-        "/micro_comm/robot_1_CMD", 1000, battleCallback);
+        "/micro_comm/robot_1_CMD", 50, battleCallback);
         twist_right_sub = n->subscribe(
         "/integration_node/rwheels_pub_topic", 100, twist_right_callback);
         loop_rate.sleep();

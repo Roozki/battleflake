@@ -25,7 +25,7 @@ MainWindow::MainWindow(QWidget* parent)
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(twist_values()));
     ;
-    timer->start(500);
+    timer->start(10);
 
     // ROS
     ros_f = new RosIntegration();

@@ -54,10 +54,11 @@ void MicroComm::JoyCallBack(const sensor_msgs::Joy::ConstPtr& msg) {
     cmd.drive1PWR = PWR1;
     cmd.drive2PWR = PWR2;
 
-   //ROS_INFO("%i", cmd.mode[1]);
+   //ROS_INFO("%i", cmd.mode[S1]);
    sendCmd();
-    ros::Duration(0.01).sleep();
-
+    ros::Rate loop_rate(100);
+    loop_rate.sleep();
+    ros::spinOnce();
 
 }
 
