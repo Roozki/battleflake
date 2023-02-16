@@ -28,22 +28,44 @@ MicroComm::MicroComm(int argc, char **argv, std::string node_name) {
 
 void MicroComm::JoyCallBack(const sensor_msgs::Joy::ConstPtr& msg) {
     ROS_INFO("Received message");
-float inputPWR = msg->axes[5];
-    float PWR = mapFloat(inputPWR, -1.0, 1.0, -128.0, 128.0);
+    float rstickx = msg->axes[3];
+    if (rstickx < 0.1 && rstickx > -0.1){
+        rstickx = 0.0;
+    }
+    float rtrigger = msg->axes[5];
+    float PWR = mapFloat(rtrigger, 1.0, -1.0, -50.0, 50.0);
 
-    //int PWR1 = PWR1 + (msg->axes[3] * 50);
-    //int PWR2 =
-   // cmd.drive1PWR = PWR + ((msg->axes[3] * 50) );
+    int PWR1 = PWR - (rstickx * 100) - 1;
+    int PWR2 = PWR + (rstickx * 100) - 1;
+    
+  if(PWR1 > 100){
+    PWR1 = 100;
+  } 
+  if(PWR1 < -100){
+    PWR1 = -100;
+  }
+  if(PWR2 > 100){
+    PWR2 = 100;
+  } 
+  if(PWR2 < -100){
+    PWR2 = -100;
+  }   
+   
+    cmd.drive1PWR = PWR1;
+    cmd.drive2PWR = PWR2;
 
    //ROS_INFO("%i", cmd.mode[1]);
    sendCmd();
+    ros::Duration(0.01).sleep();
+
+
 }
 
  void MicroComm::sendCmd(){
 
     
 
-     cmd_pub.publish(cmd);
+    cmd_pub.publish(cmd);
 
  }
 
@@ -52,5 +74,7 @@ float MicroComm::mapFloat(float input, float fromMin, float fromMax, float toMin
     float output = fromMin + (m*(input - fromMin));
 
     return output;
+
+    //time complexity: O(n)
 }
  
