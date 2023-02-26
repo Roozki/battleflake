@@ -45,8 +45,8 @@ MainWindow::~MainWindow() {
     qDebug() << "Destructor OK";
 }
 
-void MainWindow::twist_values() {
-    ui->mot1PWR_lcd->display(cmd_msg.drive1PWR);
+void MainWindow::twist_values() { //how does this update?
+    ui->test->display(cmd_msg.drive1PWR);
     ui->mot2PWR_lcd->display(cmd_msg.drive2PWR);
     ui->angular_lcd->display(twist_message_controller.angular.z);
     ui->linear_lcd->display(twist_message_controller.linear.x);
