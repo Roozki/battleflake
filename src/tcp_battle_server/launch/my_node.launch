@@ -1,0 +1,5 @@
+<launch>
+    <node name="microcomms" pkg="microcontroller_comms" type="MicroComm" output="screen">
+      <!--  <param name="character" value="w" /> -->
+    </node>
+</launch>
