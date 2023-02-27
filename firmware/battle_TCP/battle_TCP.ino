@@ -1,48 +1,11 @@
 #include "battle_TCP.h"
 
 
-// void setup() {
-//   // put your setup code here, to run once:
-//  counter ++;
-
-// pinMode(pin1, OUTPUT);
-// pinMode(pin2, OUTPUT);
-// fakeCMD.drive1PWR = 70;
-
-// }
-
-// void loop() {
-// counter ++;
-// if (millis() - beatTEMP > beatINTERVAL){
-
-// beatTEMP = millis();
-// counter = 0;
-// }
-
-// // if(x == 1){
-
-// //     digitalWrite(pin1, HIGH);
-// //     digitalWrite(pin2, LOW);
-
-
-// // }else if(b == 1){
-// //   digitalWrite(pin1, LOW);
-// //   digitalWrite(pin2, HIGH);
-
-// // } else{
-// //   digitalWrite(pin1, LOW);
-// //   digitalWrite(pin2, LOW);
-
-
-// // }
-
-// delay(10);
-
-
-
-// }
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
+
+ pinMode(pin1, OUTPUT);
+ pinMode(pin2, OUTPUT);
 
   WiFi.begin(ssid, pass);
 
@@ -69,6 +32,11 @@ void setup() {
     Serial.println("Disconnected from server");
   });
 
+    client.onData([](void* arg, AsyncClient* c, void* data, size_t len) {
+    Serial.print("Received data: ");
+    Serial.write((uint8_t*)data, len);
+  });
+
   client.connect("192.168.1.100", 9000);
 }
 
@@ -78,12 +46,15 @@ void loop() {
 
     Serial.println("Still Connected");
     client.write("helloo");
-    delay(1000);
+    delay(100);
 
-    // String data = client.read();
+    
+     //String data = client.read();
   }
   // Check for any errors or disconnections
   if (!client.connected()) {
     Serial.println("Lost connection to server");
   }
+      delay(100);
+
 }
