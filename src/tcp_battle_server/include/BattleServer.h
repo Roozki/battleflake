@@ -13,6 +13,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/Joy.h>
 #include <bb_msgs/battleCmd.h>
+#include <cstring>
 
 //network TCP stuff
 #define _BSD_SOURCE
@@ -36,8 +37,13 @@ private:
     float mapFloat(float input, float fromMin, float fromMax, float toMin, float toMax);
 
     void JoyCallBack(const sensor_msgs::Joy::ConstPtr& msg);
-    void sendCmds();
-   
+    void sendCmds(int robot1_Ly, int robot1_Rz);
+
+    int sockfd, newsockfd;
+    socklen_t clilen;
+    char buffer[256];
+    struct sockaddr_in serv_addr, cli_addr;
+    int n; 
 
 
     ros::Subscriber joy_sub;

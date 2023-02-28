@@ -26,11 +26,7 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
     // cmd_pub = private_nh.advertise<bb_msgs::battleCmd>(topic, queue_size);
 
 
-  int sockfd, newsockfd;
-  socklen_t clilen;
-  char buffer[256];
-  struct sockaddr_in serv_addr, cli_addr;
-  int n; 
+ 
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
   if(sockfd < 0){
     ROS_ERROR("error opening socket");
@@ -45,7 +41,7 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
 
   if (bind(sockfd, (struct sockaddr *) &serv_addr,
     sizeof(serv_addr)) < 0){
-   ROS_ERROR("ERROR on binding");
+   ROS_ERROR("ERROR on binding, killall might help?");
       }
 
   listen(sockfd,5);
@@ -53,7 +49,7 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
   clilen = sizeof(cli_addr);
 
    newsockfd = accept(sockfd, 
-                 (struct sockaddr *) &cli_addr, &clilen);
+    (struct sockaddr *) &cli_addr, &clilen);
      if (newsockfd < 0) 
           ROS_ERROR("ERROR on accept");
 
@@ -61,60 +57,79 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
             inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
 
 
-     // This send() function sends the 13 bytes of the string to the new socket
-     send(newsockfd, "Hello, world!\n", 13, 0);
+   
 
-     bzero(buffer,256);
+    //  n = read(newsockfd,buffer,255);
+    //  if (n < 0) ROS_ERROR("ERROR reading from socket");
+    //  ROS_INFO("Here is the message: %s\n",buffer);
 
-     n = read(newsockfd,buffer,255);
-     if (n < 0) ROS_ERROR("ERROR reading from socket");
-     ROS_INFO("Here is the message: %s\n",buffer);
-
-     close(newsockfd);
-     close(sockfd);
+    //  close(newsockfd);
+    //  close(sockfd);
 }
 
 void BattleServer::JoyCallBack(const sensor_msgs::Joy::ConstPtr& msg) {
   //  ROS_INFO("Received joy message");
     float rstickx = msg->axes[3];
+    float rsticky = msg->axes[4];
+      if (rsticky < 0.1 && rsticky > -0.1){ //better to handle in joy_node run params
+        rsticky = 0.0;
+    }
     if (rstickx < 0.1 && rstickx > -0.1){
         rstickx = 0.0;
     }
     float rtrigger = msg->axes[5];
-    float PWR = mapFloat(rtrigger, 1.0, -1.0, -50.0, 50.0);
+    float ltrigger = msg->axes[6];
 
-    int PWR1 = PWR - (rstickx * 100) - 1;
-    int PWR2 = PWR + (rstickx * 100) - 1;
+    float PWR = mapFloat(rtrigger, 1.0, -1.0, 0.0, 100.0);
+    float REVERSE = mapFloat(ltrigger, 1.0, -1.0, 0.0, 100.0);
+
+
+
+    int PWR1yL = PWR - REVERSE;
+    int PWR1zR = rstickx * 100;
     
-  if(PWR1 > 100){
-    PWR1 = 100;
+  if(PWR1yL > 100){
+    PWR1yL = 100;
   } 
-  if(PWR1 < -100){
-    PWR1 = -100;
+  if(PWR1yL < -100){
+    PWR1yL = -100;
   }
-  if(PWR2 > 100){
-    PWR2 = 100;
+  if(PWR1zR > 100){
+    PWR1zR = 100;
   } 
-  if(PWR2 < -100){
-    PWR2 = -100;
+  if(PWR1zR < -100){
+    PWR1zR = -100;
   }   
    
-    cmd.drive1PWR = PWR1;
-    cmd.drive2PWR = PWR2;
 
    //ROS_INFO("%i", cmd.mode[S1]);
-   sendCmds();
-    ros::Rate loop_rate(100);
+   sendCmds(PWR1yL, PWR1zR);
+    ros::Rate loop_rate(100); //send rate in hz
     loop_rate.sleep();
     ros::spinOnce();
-
 }
 
- void BattleServer::sendCmds(){
+ void BattleServer::sendCmds(int robot1_Ly, int robot1_Rz){
 
+ //int Ly_length = std::strlen(std::to_string(robot1_Ly));
+ //int Rz_length = std::strlen(std::to_string(robot1_Rz));
+
+  // char Ly[Ly_length] = std::to_string(robot1_Ly);
+  // char Rz[Rz_length] = std::to_string(robot1_Rz);
     
+    // int outmsgSize = //Ly_length + Rz_length;
+
+   const char* outmsg = "hey\n"; //new char[outmsgSize + 1];
+     int outmsgSize = std::strlen(outmsg);//Ly_length + Rz_length;
+
+    // This send function sends the correct number bytes of the string to the socket
+     
+     send(newsockfd, outmsg, outmsgSize, 0);
+
+     bzero(buffer,256);
 
    // cmd_pub.publish(cmd);
+   //delete[] outmsg;
 
  }
 
