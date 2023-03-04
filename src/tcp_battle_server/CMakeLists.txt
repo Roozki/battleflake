@@ -141,6 +141,7 @@ include_directories(
 ## Declare a C++ executable
 # add_executable(sample_package_node src/sample_package_node.cpp)
 add_executable(battle_server src/battle_server.cpp src/BattleServer.cpp include/BattleServer.h)
+#add_executable(meca_server src/meca_server.cpp src/MecaServer.cpp include/MecaServer.h)
 
 
 ## Add cmake target dependencies of the executable
@@ -152,6 +153,7 @@ add_executable(battle_server src/battle_server.cpp src/BattleServer.cpp include/
 #   ${catkin_LIBRARIES}
 # )
 target_link_libraries(battle_server ${catkin_LIBRARIES})
+#target_link_libraries(meca_server ${catkin_LIBRARIES})
 
 #############
 ## Install ##

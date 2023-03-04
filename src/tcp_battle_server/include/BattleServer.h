@@ -38,12 +38,21 @@ private:
 
     void JoyCallBack(const sensor_msgs::Joy::ConstPtr& msg);
     void sendCmds(int robot1_Ly, int robot1_Rz);
+    void MecaCmds(float lx, float ly, float lz, float rx, float ry, float rz, float cartacc);
+    void setup();
 
     int sockfd, newsockfd;
     socklen_t clilen;
     char buffer[256];
     struct sockaddr_in serv_addr, cli_addr;
     int n; 
+    float cartacc = 0.0;
+
+
+    //temp variables
+    float tempacc = 0;
+
+
 
 
     ros::Subscriber joy_sub;
