@@ -42,7 +42,7 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
 
   if (bind(sockfd, (struct sockaddr *) &serv_addr,
     sizeof(serv_addr)) < 0){
-   ROS_ERROR("ERROR on binding, killall might help?");
+   ROS_ERROR("ERROR on binding, killall -9/-15 might help?");
       }
 
   listen(sockfd,5);
