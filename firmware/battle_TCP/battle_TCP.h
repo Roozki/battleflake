@@ -2,6 +2,12 @@
 #include <WiFi.h>
 #include <AsyncTCP.h>
 #include <AccelStepper.h>
+#include <sstream>
+
+
+void sendCmd();
+void CMD(int pwr1, int pwr2);
+
 
 const char* ssid = "battle_network";
 const char* pass = "guest123";

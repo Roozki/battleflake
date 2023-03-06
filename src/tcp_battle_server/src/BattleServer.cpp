@@ -27,35 +27,57 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
     // cmd_pub = private_nh.advertise<bb_msgs::battleCmd>(topic, queue_size);
 
 
- 
+ //int status, client_fd;
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
-  if(sockfd < 0){
-    ROS_ERROR("error opening socket");
-  }
-  bzero((char *) &serv_addr, sizeof(serv_addr));
+  // if(sockfd < 0){
+  //   ROS_ERROR("error opening socket");
+  // }
+
+    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        ROS_ERROR("\n Socket creation error \n");
+            }
+  //bzero((char *) &serv_addr, sizeof(serv_addr));
 
   serv_addr.sin_family = AF_INET; //sets tcp instead of udp i think
 
-  serv_addr.sin_addr.s_addr = INADDR_ANY; //auto IP
+  //serv_addr.sin_addr.s_addr = inet_addr("192.168.0.100");//INADDR_ANY; //auto IP
 
   serv_addr.sin_port = htons(PORT1);
 
-  if (bind(sockfd, (struct sockaddr *) &serv_addr,
-    sizeof(serv_addr)) < 0){
-   ROS_ERROR("ERROR on binding, killall -9/-15 might help?");
-      }
 
-  listen(sockfd,5);
 
-  clilen = sizeof(cli_addr);
+//server stuff
+ if (inet_pton(AF_INET, "192.168.0.100", &serv_addr.sin_addr)
+        <= 0) {
+        ROS_INFO(
+            "\nInvalid address/ Address not supported \n");
+        
+    }
 
-   newsockfd = accept(sockfd, 
-    (struct sockaddr *) &cli_addr, &clilen);
-     if (newsockfd < 0) 
-          ROS_ERROR("ERROR on accept");
+  if ((connect(sockfd, (struct sockaddr*)&serv_addr,
+                   sizeof(serv_addr)))
+        < 0) {
+        ROS_INFO("\nConnection Failed \n");
+        
+    }
 
-     ROS_INFO("server: got connection from %s port %d\n",
-            inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
+
+  // if (bind(sockfd, (struct sockaddr *) &serv_addr,
+  //   sizeof(serv_addr)) < 0){
+  //  ROS_ERROR("ERROR on binding, killall -9/-15 might help?");
+  //     }
+
+  //listen(sockfd,5);
+
+  // clilen = sizeof(cli_addr);
+
+  //  newsockfd = accept(sockfd, 
+  //   (struct sockaddr *) &cli_addr, &clilen);
+  //    if (newsockfd < 0) 
+  //         ROS_ERROR("ERROR on accept");
+
+  //    ROS_INFO("server: got connection from %s port %d\n",
+  //           inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
 
 
    
@@ -76,7 +98,7 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
 }
 
 
-void BattleServer::JoyCallBack(const sensor_msgs::Joy::ConstPtr& msg) {
+void BattleServer::JoyCallBack(const sensor_msgs::Joy::ConstPtr& msg) {//this callback is way too long i think
   //  ROS_INFO("Received joy message");
   //linear speed
   int lspeed = 1;
@@ -113,8 +135,32 @@ void BattleServer::JoyCallBack(const sensor_msgs::Joy::ConstPtr& msg) {
       //do nothing
       break;
   }
+//int mode = A;
   
-  MecaCmds(lstickx, lsticky, rsticky, 0.0, 0.0, rstickx, cartacc);
+  //MecaCmds(lstickx, lsticky, rsticky, 0.0, 0.0, rstickx, cartacc);
+
+ // float axisbalanceR = mapFloat(rtig, 1.0, -1.0, );//dependentAxis(rtrig, 0.0, mode);
+ // float axisbalanceL = //dependentAxis(ltrig, 0.0, mode);
+
+
+
+
+  float lx = lstickx;
+  float ly = lsticky;// + rtrig;
+  float lz = rsticky;// * ltrig;
+
+  float rx = 0.0;//rstickx;  
+  float ry = 0.0; //lstickx;// * rtrig;
+  float rz = lstickx;// * ltrig;
+
+
+
+int activate = X;
+int home = Y;
+
+
+  MecaCmds(lx, ly, lz, rx, ry, rz, cartacc, activate, home);
+
 
     // if (rsticky < 0.1 && rsticky > -0.1){ //better to handle deadzone in joy_node run params
     //     rsticky = 0.0;
@@ -148,9 +194,25 @@ void BattleServer::JoyCallBack(const sensor_msgs::Joy::ConstPtr& msg) {
 
    //ROS_INFO("%i", cmd.mode[S1]);
    //sendCmds(PWR1yL, PWR1zR);
-    ros::Rate loop_rate(100); //send rate in hz
+    ros::Rate loop_rate(100); //send rate in hz, slows down sending cmds even if joy node is rate set
     loop_rate.sleep();
     ros::spinOnce();
+}
+
+float BattleServer::dependentAxis(float MasterAxis, float SlaveAxis, int mode){ //i think the naming convention 'master' and 'slave' should change as its potentially harmful language, but it be what it be for now
+  float factor;
+  switch (mode)
+  {
+  case 1:
+  //factor = 
+  default:
+  ROS_INFO("tried to balance axis without mode set");
+    break;
+  }
+
+
+
+  return factor;
 }
 
 void BattleServer::sendCmds(int robot1_Ly, int robot1_Rz){
@@ -187,7 +249,7 @@ void BattleServer::sendCmds(int robot1_Ly, int robot1_Rz){
 
 
 //not for capstone, part of other project
-void BattleServer::MecaCmds(float lx, float ly, float lz, float rx, float ry, float rz, float cartacc){
+void BattleServer::MecaCmds(float lx, float ly, float lz, float rx, float ry, float rz, float cartacc, int activate, int home){
 
 if(tempacc != cartacc){
   int cartacc_length = std::strlen(std::to_string(cartacc).c_str());
@@ -197,6 +259,28 @@ if(tempacc != cartacc){
 
   char accbuffer[accbufferSize];
   std::sprintf(accbuffer, "SetCartAcc(%f)\n", cartacc);
+  send(newsockfd, accbuffer, accbufferSize, 0);
+
+}
+
+if(activate != tempActivate){
+  //int _length = std::strlen(std::to_string(cartacc).c_str());
+
+  tempActivate = activate;
+  int accbufferSize = 15; 
+
+  char accbuffer[accbufferSize];
+  std::sprintf(accbuffer, "ActivateRobot\n");
+  send(newsockfd, accbuffer, accbufferSize, 0);
+}
+if(home != tempHome){
+  //int _length = std::strlen(std::to_string(cartacc).c_str());
+
+  tempHome = home;
+  int accbufferSize = 6; 
+
+  char accbuffer[accbufferSize];
+  std::sprintf(accbuffer, "Home\n");
   send(newsockfd, accbuffer, accbufferSize, 0);
 
 }

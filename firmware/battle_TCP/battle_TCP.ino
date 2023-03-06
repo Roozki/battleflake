@@ -33,8 +33,25 @@ void setup() {
   });
 
     client.onData([](void* arg, AsyncClient* c, void* data, size_t len) {
-    Serial.print("Received data: ");
-    Serial.write((uint8_t*)data, len);
+
+    //Serial.print("Received data: ");
+    //char* temp = data
+    String dat = "";
+
+     dat = ((String *) data)->c_str();
+    int indexTEMP = dat.lastIndexOf(", ");
+    int pwr1 = (dat.substring(7, indexTEMP)).toInt();
+    int indexTEMP2 = dat.indexOf(")");
+    int pwr2 = (dat.substring(indexTEMP, indexTEMP2)).toInt();
+
+   // CMD((uint8_t*)data, len);
+    Serial.print(pwr1);
+     Serial.print(" we  ");
+
+    Serial.println(pwr2);
+
+
+   // Serial.write((uint8_t*)data, len);
   });
 
   client.connect("192.168.1.100", 9000);
@@ -42,11 +59,11 @@ void setup() {
 
 void loop() {
   // Process any incoming data from the server
-  while (client.connected()) {
+  if (client.connected()) {
 
-    Serial.println("Still Connected");
-    client.write("helloo");
-    delay(100);
+    //Serial.println("Still Connected");
+    //client.write("helloo");
+    //delay(100);
 
     
      //String data = client.read();
@@ -56,5 +73,11 @@ void loop() {
     Serial.println("Lost connection to server");
   }
       delay(100);
+
+}
+
+
+void CMD(int pwr1, int pwr2){
+
 
 }
