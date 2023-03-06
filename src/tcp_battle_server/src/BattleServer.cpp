@@ -97,7 +97,7 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
 }
   void BattleServer::setup() {
      system(
-     "gnome-terminal --tab -- bash -c 'rosrun joy joy_node _deadzone:=0.3 _autorepeat_rate:=20 _coalesce_interval:=0.05'");
+     "gnome-terminal --tab -- bash -c 'rosrun joy joy_node _deadzone:=0.3 _autorepeat_rate:=0 _coalesce_interval:=0.01'");
 
      ROS_INFO(
      "ALLCONTROLLER INITIATED, CURRENTLY PARSING FOR XBOX360");
@@ -151,13 +151,13 @@ void BattleServer::JoyCallBack(const sensor_msgs::Joy::ConstPtr& msg) {//this ca
 
 
 
-  float lx = lstickx * lspeed;
-  float ly = lsticky * lspeed;// + rtrig;
-  float lz = rsticky * lspeed;// * ltrig;
+  float lx = lstickx;
+  float ly = lsticky;// + rtrig;
+  float lz = rsticky;// * ltrig;
 
   float rx = 0.0;//rstickx;  
   float ry = 0.0; //lstickx;// * rtrig;
-  float rz = lstickx * aspeed;// * ltrig;
+  float rz = lstickx;// * ltrig;
 
 
 
@@ -201,9 +201,9 @@ int reseterror = LB;
 
    //ROS_INFO("%i", cmd.mode[S1]);
    //sendCmds(PWR1yL, PWR1zR);
-    ros::Rate loop_rate(10); //send rate in hz, slows down sending cmds even if joy node is rate set
-    loop_rate.sleep();
-    ros::spinOnce();
+    // ros::Rate loop_rate(10); //send rate in hz, slows down sending cmds even if joy node is rate set
+    // loop_rate.sleep();
+    // ros::spinOnce();
 }
 
 float BattleServer::dependentAxis(float MasterAxis, float SlaveAxis, int mode){ //i think the naming convention 'master' and 'slave' should change as its potentially harmful language, but it be what it be for now
@@ -263,11 +263,12 @@ if(tempacc != cartacc){
   int cartacc_length = std::strlen(std::to_string(cartacc).c_str());
 
   tempacc = cartacc;
-  int accbufferSize = cartacc_length + 14; 
+  cartacc = 5;
+  int cartbufferSize = cartacc_length + 14; 
+  char cartbuffer[cartbufferSize];
 
-  char accbuffer[accbufferSize];
-  std::sprintf(accbuffer, "SetCartAcc(%f)\n", cartacc);
-  send(sockfd, accbuffer, accbufferSize, 0);
+  std::sprintf(cartbuffer, "SetCartAcc(%f)\n", cartacc);
+  send(sockfd, cartbuffer, cartbufferSize, 0);
   ROS_INFO("Cartacc message sent\n");
     //valread = read(sockfd, buffer, 1024);
     //ROS_INFO("%s\n", buffer);
@@ -282,36 +283,41 @@ if(tempacc != cartacc){
   std::sprintf(accbuffer, "ActivateRobot\n");
   send(sockfd, accbuffer, accbufferSize, 0);
   ROS_INFO("activate message sent\n");
-    //valread = read(sockfd, buffer, 1024);
+  //sleep_for();
+   // valread = read(sockfd, buffer, 1023);
     //ROS_INFO("%s\n", buffer);
 }else if(error != tempError){
   //int _length = std::strlen(std::to_string(cartacc).c_str());
 
 tempError = error;
-  int accbufferSize = 12; 
+  int errbufferSize = 12; 
 
-  char accbuffer[accbufferSize];
-  std::sprintf(accbuffer, "ResetError\n");
-  send(sockfd, accbuffer, accbufferSize, 0);
+  char errbuffer[errbufferSize];
+  std::sprintf(errbuffer, "ResetError\n");
+  send(sockfd, errbuffer, errbufferSize, 0);
+  //delay(100);
   ROS_INFO("reseterror message sent\n");
-    //valread = read(sockfd, buffer, 1024);
+   // valread = read(sockfd, buffer, 1023);
     //ROS_INFO("%s\n", buffer);
 }else if(home != tempHome){
   //int _length = std::strlen(std::to_string(cartacc).c_str());
 
   tempHome = home;
-  int accbufferSize = 6; 
+  int hmbufferSize = 6; 
 
-  char accbuffer[accbufferSize];
-  std::sprintf(accbuffer, "Home\n");
-  send(sockfd, accbuffer, accbufferSize, 0);
+  char hmbuffer[hmbufferSize];
+  std::sprintf(hmbuffer, "Home\n");
+  send(sockfd, hmbuffer, hmbufferSize, 0);
   ROS_INFO("home message sent\n");
-    //valread = read(sockfd, buffer, 1024);
-    //ROS_INFO("%s\n", buffer);
+   // delay(100);
+
+//    valread = read(sockfd, buffer, 1023);
+  //  ROS_INFO("%s\n", buffer);
 
 }else{
 
 // this can probably be more efficient
+
  int Lx_length = std::strlen(std::to_string(lx).c_str()); 
  int Ly_length = std::strlen(std::to_string(ly).c_str());
  int Lz_length = std::strlen(std::to_string(lz).c_str());
@@ -329,27 +335,32 @@ tempError = error;
    //const char* 
 
    
-  
 
-   const int bufferSize = 1024;//Lx_length + Ly_length + Lz_length + Rx_length + Ry_length + Rz_length + 27; //27 is the # of bytes of surrounding characters
-   char buffer[bufferSize];
-  std::sprintf(buffer, "MoveLinVelTrf(%f, %f, %f, %f, %f, %f)\n", lx, ly, lz, rx, ry, rz);
+
+   const int CMDbufferSize = 2048;// Lx_length + Ly_length + Lz_length + Rx_length + Ry_length + Rz_length + 27; //27 is the # of bytes of surrounding characters
+   char CMDbuffer[CMDbufferSize];
+   std::sprintf(CMDbuffer, "MoveLinVelTrf(%.3f, %.3f, %.3f, %.3f, %.3f, %.3f)\0", lx, ly, lz, rx, ry, rz);
    //outmsg << command[0]; //new char[outmsgSize + 1];
 
      //int outmsgSize = std::strlen(outmsg);//Ly_length + Rz_length;
 
     // This send function sends the correct number bytes of the string to the socket
      
-     send(sockfd, buffer, bufferSize, 0);
+     send(sockfd, CMDbuffer, CMDbufferSize, 0);
      ROS_INFO("control message sent\n");
+    //  char bufferree[1023];
+    //  int n = read(sockfd,bufferree,1023);
+    //   if (n < 0) ROS_ERROR("ERROR reading from socket");
+    //   ROS_INFO("Here is the message: %s\n",bufferree);
+     bzero(CMDbuffer,CMDbufferSize);
+     //bzero(bufferree,1024);
+
     //valread = read(sockfd, buffer, 1024);
     //ROS_INFO("%s\n", buffer);
 }
-int n = read(sockfd,buffer,1024);
-      if (n < 0) ROS_ERROR("ERROR reading from socket");
-      ROS_INFO("Here is the message: %s\n",buffer);
+  //delay(100);
 
-    // bzero(buffer,1024);
+
 
    // cmd_pub.publish(cmd);
    //delete[] outmsg;

@@ -47,10 +47,10 @@ private:
 
     int sockfd, newsockfd;
   //  socklen_t clilen;
-    char buffer[1024];
+    //char CMDbuffer[1024];
     struct sockaddr_in serv_addr;//, cli_addr;
     int n; 
-    float cartacc = 0.0;
+    float cartacc = 100.0;
 
     float lspeed = 50.0;
     float aspeed = 50.0;
