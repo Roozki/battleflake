@@ -27,8 +27,8 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
     // cmd_pub = private_nh.advertise<bb_msgs::battleCmd>(topic, queue_size);
 
 
- //int status, client_fd;
-  sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    int status, valread;
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
   // if(sockfd < 0){
   //   ROS_ERROR("error opening socket");
   // }
@@ -60,7 +60,15 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
         ROS_INFO("\nConnection Failed \n");
         
     }
+   char* home = "Home";
 
+ //send(sockfd, home, strlen(home), 0);
+    //ROS_INFO("Hello message sent\n");
+   // valread = read(sockfd, buffer, 1024);
+    //ROS_INFO("%s\n", buffer);
+  
+    // closing the connected socket
+    //close(sockfd);
 
   // if (bind(sockfd, (struct sockaddr *) &serv_addr,
   //   sizeof(serv_addr)) < 0){
@@ -82,9 +90,7 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
 
    
 
-    //  n = read(newsockfd,buffer,255);
-    //  if (n < 0) ROS_ERROR("ERROR reading from socket");
-    //  ROS_INFO("Here is the message: %s\n",buffer);
+      
 
     //  close(newsockfd);
     //  close(sockfd);
@@ -145,21 +151,22 @@ void BattleServer::JoyCallBack(const sensor_msgs::Joy::ConstPtr& msg) {//this ca
 
 
 
-  float lx = lstickx;
-  float ly = lsticky;// + rtrig;
-  float lz = rsticky;// * ltrig;
+  float lx = lstickx * lspeed;
+  float ly = lsticky * lspeed;// + rtrig;
+  float lz = rsticky * lspeed;// * ltrig;
 
   float rx = 0.0;//rstickx;  
   float ry = 0.0; //lstickx;// * rtrig;
-  float rz = lstickx;// * ltrig;
+  float rz = lstickx * aspeed;// * ltrig;
 
 
 
 int activate = X;
 int home = Y;
+int reseterror = LB;
 
 
-  MecaCmds(lx, ly, lz, rx, ry, rz, cartacc, activate, home);
+  MecaCmds(lx, ly, lz, rx, ry, rz, cartacc, activate, home, reseterror);
 
 
     // if (rsticky < 0.1 && rsticky > -0.1){ //better to handle deadzone in joy_node run params
@@ -170,31 +177,31 @@ int home = Y;
     // }
    
 
-    float PWR = mapFloat(rtrig, 1.0, -1.0, 0.0, 100.0);
-    float REVERSE = mapFloat(ltrig, 1.0, -1.0, 0.0, 100.0);
+  //   float PWR = mapFloat(rtrig, 1.0, -1.0, 0.0, 100.0);
+  //   float REVERSE = mapFloat(ltrig, 1.0, -1.0, 0.0, 100.0);
 
 
 
-    int PWR1yL = PWR - REVERSE;
-    int PWR1zR = rstickx * 100;
+  //   int PWR1yL = PWR - REVERSE;
+  //   int PWR1zR = rstickx * 100;
     
-  if(PWR1yL > 100){
-    PWR1yL = 100;
-  } 
-  if(PWR1yL < -100){
-    PWR1yL = -100;
-  }
-  if(PWR1zR > 100){
-    PWR1zR = 100;
-  } 
-  if(PWR1zR < -100){
-    PWR1zR = -100;
-  }   
+  // if(PWR1yL > 100){
+  //   PWR1yL = 100;
+  // } 
+  // if(PWR1yL < -100){
+  //   PWR1yL = -100;
+  // }
+  // if(PWR1zR > 100){
+  //   PWR1zR = 100;
+  // } 
+  // if(PWR1zR < -100){
+  //   PWR1zR = -100;
+  // }   
    
 
    //ROS_INFO("%i", cmd.mode[S1]);
    //sendCmds(PWR1yL, PWR1zR);
-    ros::Rate loop_rate(100); //send rate in hz, slows down sending cmds even if joy node is rate set
+    ros::Rate loop_rate(10); //send rate in hz, slows down sending cmds even if joy node is rate set
     loop_rate.sleep();
     ros::spinOnce();
 }
@@ -249,8 +256,9 @@ void BattleServer::sendCmds(int robot1_Ly, int robot1_Rz){
 
 
 //not for capstone, part of other project
-void BattleServer::MecaCmds(float lx, float ly, float lz, float rx, float ry, float rz, float cartacc, int activate, int home){
+void BattleServer::MecaCmds(float lx, float ly, float lz, float rx, float ry, float rz, float cartacc, int activate, int home, int error){
 
+int valread;
 if(tempacc != cartacc){
   int cartacc_length = std::strlen(std::to_string(cartacc).c_str());
 
@@ -259,11 +267,12 @@ if(tempacc != cartacc){
 
   char accbuffer[accbufferSize];
   std::sprintf(accbuffer, "SetCartAcc(%f)\n", cartacc);
-  send(newsockfd, accbuffer, accbufferSize, 0);
+  send(sockfd, accbuffer, accbufferSize, 0);
+  ROS_INFO("Cartacc message sent\n");
+    //valread = read(sockfd, buffer, 1024);
+    //ROS_INFO("%s\n", buffer);
 
-}
-
-if(activate != tempActivate){
+} else if(activate != tempActivate){
   //int _length = std::strlen(std::to_string(cartacc).c_str());
 
   tempActivate = activate;
@@ -271,9 +280,23 @@ if(activate != tempActivate){
 
   char accbuffer[accbufferSize];
   std::sprintf(accbuffer, "ActivateRobot\n");
-  send(newsockfd, accbuffer, accbufferSize, 0);
-}
-if(home != tempHome){
+  send(sockfd, accbuffer, accbufferSize, 0);
+  ROS_INFO("activate message sent\n");
+    //valread = read(sockfd, buffer, 1024);
+    //ROS_INFO("%s\n", buffer);
+}else if(error != tempError){
+  //int _length = std::strlen(std::to_string(cartacc).c_str());
+
+tempError = error;
+  int accbufferSize = 12; 
+
+  char accbuffer[accbufferSize];
+  std::sprintf(accbuffer, "ResetError\n");
+  send(sockfd, accbuffer, accbufferSize, 0);
+  ROS_INFO("reseterror message sent\n");
+    //valread = read(sockfd, buffer, 1024);
+    //ROS_INFO("%s\n", buffer);
+}else if(home != tempHome){
   //int _length = std::strlen(std::to_string(cartacc).c_str());
 
   tempHome = home;
@@ -281,9 +304,12 @@ if(home != tempHome){
 
   char accbuffer[accbufferSize];
   std::sprintf(accbuffer, "Home\n");
-  send(newsockfd, accbuffer, accbufferSize, 0);
+  send(sockfd, accbuffer, accbufferSize, 0);
+  ROS_INFO("home message sent\n");
+    //valread = read(sockfd, buffer, 1024);
+    //ROS_INFO("%s\n", buffer);
 
-}
+}else{
 
 // this can probably be more efficient
  int Lx_length = std::strlen(std::to_string(lx).c_str()); 
@@ -305,7 +331,7 @@ if(home != tempHome){
    
   
 
-   const int bufferSize = Lx_length + Ly_length + Lz_length + Rx_length + Ry_length + Rz_length + 27; //27 is the # of bytes of surrounding characters
+   const int bufferSize = 1024;//Lx_length + Ly_length + Lz_length + Rx_length + Ry_length + Rz_length + 27; //27 is the # of bytes of surrounding characters
    char buffer[bufferSize];
   std::sprintf(buffer, "MoveLinVelTrf(%f, %f, %f, %f, %f, %f)\n", lx, ly, lz, rx, ry, rz);
    //outmsg << command[0]; //new char[outmsgSize + 1];
@@ -314,9 +340,16 @@ if(home != tempHome){
 
     // This send function sends the correct number bytes of the string to the socket
      
-     send(newsockfd, buffer, bufferSize, 0);
+     send(sockfd, buffer, bufferSize, 0);
+     ROS_INFO("control message sent\n");
+    //valread = read(sockfd, buffer, 1024);
+    //ROS_INFO("%s\n", buffer);
+}
+int n = read(sockfd,buffer,1024);
+      if (n < 0) ROS_ERROR("ERROR reading from socket");
+      ROS_INFO("Here is the message: %s\n",buffer);
 
-     //bzero(buffer,256);
+    // bzero(buffer,1024);
 
    // cmd_pub.publish(cmd);
    //delete[] outmsg;

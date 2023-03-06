@@ -39,7 +39,7 @@ private:
 
     void JoyCallBack(const sensor_msgs::Joy::ConstPtr& msg);
     void sendCmds(int robot1_Ly, int robot1_Rz);
-    void MecaCmds(float lx, float ly, float lz, float rx, float ry, float rz, float cartacc, int activate, int home);
+    void MecaCmds(float lx, float ly, float lz, float rx, float ry, float rz, float cartacc, int activate, int home, int error);
     void setup();
     float dependentAxis(float MasterAxis, float SlaveAxis, int mode); //i think the naming convention 'master' and 'slave' should change as its potentially harmful language, but it be what it be for now
 
@@ -47,16 +47,20 @@ private:
 
     int sockfd, newsockfd;
   //  socklen_t clilen;
-    char buffer[256];
+    char buffer[1024];
     struct sockaddr_in serv_addr;//, cli_addr;
     int n; 
     float cartacc = 0.0;
+
+    float lspeed = 50.0;
+    float aspeed = 50.0;
 
 
     //temp variables
     float tempacc = 0;
     int tempActivate = 0;
     int tempHome = 0;
+    int tempError = 0;
 
 
 
