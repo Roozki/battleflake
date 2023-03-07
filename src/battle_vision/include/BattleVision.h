@@ -17,7 +17,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/objdetect/objdetect.hpp>
+//#include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/opencv.hpp>
 
 // Image Conversion
@@ -28,6 +28,7 @@
 using namespace cv;
 class BattleVision {
 public:
+
     BattleVision(int argc, char **argv, std::string node_name);
 
     void clickCallback(int event, int x, int y, int flags){
@@ -35,6 +36,8 @@ public:
      {
         //  cout << "Left button of the mouse is clicked - position (" << x << ", " << y << ")" << endl;
         ROS_INFO("Left Button clicked at: %d, %d", x, y);
+       // Battpt.x = x;
+       // BattleVision::pt.y = y;
      }
      else if  ( event == EVENT_RBUTTONDOWN )
      {
@@ -60,6 +63,8 @@ public:
 
 
 private:
+     //Point pt(1,1);
+
    
    // float mapFloat(float input, float fromMin, float fromMax, float toMin, float toMax);
 
