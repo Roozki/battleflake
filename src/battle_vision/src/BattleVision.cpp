@@ -14,7 +14,7 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
     ros::init(argc, argv, node_name);
     ros::NodeHandle nh;
     ros::NodeHandle private_nh("~");
-     ros::Rate loop_rate(30);
+     ros::Rate loop_rate(3);
     // Obtains character from the parameter server (or launch file), sets '!' as default
     //std::string parameter_name    = "character";
     //std::string default_character = "!";
@@ -65,11 +65,12 @@ cap >> frame;
      //        ROS_ERROR("Failed to read frame from camera");
      //        break;
      //    }
-       // loop_rate.sleep();
         ros::spinOnce();
 
         imshow("Battle Eye", frame);
             cv::waitKey(1);
+            loop_rate.sleep();
+
             ROS_INFO("wee");
 
     }
