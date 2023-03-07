@@ -25,15 +25,42 @@
 #include <image_transport/subscriber.h>
 #include <sensor_msgs/image_encodings.h>
 
-
+using namespace cv;
 class BattleVision {
 public:
     BattleVision(int argc, char **argv, std::string node_name);
- 
+
+    void clickCallback(int event, int x, int y, int flags){
+         if  ( event == EVENT_LBUTTONDOWN )
+     {
+        //  cout << "Left button of the mouse is clicked - position (" << x << ", " << y << ")" << endl;
+        ROS_INFO("Left Button clicked at: %d, %d", x, y);
+     }
+     else if  ( event == EVENT_RBUTTONDOWN )
+     {
+          //cout << "Right button of the mouse is clicked - position (" << x << ", " << y << ")" << endl;
+     }
+     else if  ( event == EVENT_MBUTTONDOWN )
+     {
+          //cout << "Middle button of the mouse is clicked - position (" << x << ", " << y << ")" << endl;
+     }
+     else if ( event == EVENT_MOUSEMOVE )
+     {
+        
+          //cout << "Mouse move over the window - position (" << x << ", " << y << ")" << endl;
+
+     }
+    }
+
+   static void clickCallbackHandler(int event, int x, int y, int flags, void* userdata){
+    BattleVision* self = static_cast<BattleVision*>(userdata);
+    self->clickCallback(event, x, y, flags);
+
+   }
+
 
 private:
-    void CallBackk(int event, int x, int y, int flags, void* userdata);
-
+   
    // float mapFloat(float input, float fromMin, float fromMax, float toMin, float toMax);
 
    // void JoyCallBack(const sensor_msgs::Joy::ConstPtr& msg);

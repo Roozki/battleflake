@@ -7,14 +7,14 @@ author: rowan zawadzki
 
 
 
-using namespace std;
+ using namespace std;
  using namespace cv;
 BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
     // Setup NodeHandles
     ros::init(argc, argv, node_name);
     ros::NodeHandle nh;
     ros::NodeHandle private_nh("~");
-
+     ros::Rate loop_rate(10);
     // Obtains character from the parameter server (or launch file), sets '!' as default
     //std::string parameter_name    = "character";
     //std::string default_character = "!";
@@ -31,7 +31,7 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
     // queue_size        = 1;
     // cmd_pub = private_nh.advertise<bb_msgs::battleCmd>(topic, queue_size);
 
-    cv::Mat img = cv::imread("testPic.JPG");
+    cv::Mat img = cv::imread("/home/rowan/battleflake/src/battle_vision/src/testPic.png");
        //if fail to read the image
      if ( img.empty() ) 
      { 
@@ -39,41 +39,33 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
 
      }
        //Create a window
-     cv::namedWindow("My Window", 1);
+     cv::namedWindow("My Window", 0);
 
      //set the callback function for any mouse event
-     cv::setMouseCallback("My Window", BattleVision::CallBackk, NULL);
+     cv::setMouseCallback("My Window", &BattleVision::clickCallbackHandler, this);
+         cv::imshow("My Window", img);
 
-     //show the image
-     cv::imshow("My Window", img);
+
+     //show the image at a rate of 10hz
+    // while(ros::ok()){
 
      // Wait until user press some key
      cv::waitKey(0);
+     //loop_rate.sleep();
+
+     //}
 
      //return 0;
 }
- void BattleVision::CallBackk(int event, int x, int y, int flags, void* userdata)
-{
-     if  ( event == cv::EVENT_LBUTTONDOWN )
-     {
-        //  cout << "Left button of the mouse is clicked - position (" << x << ", " << y << ")" << endl;
-        ROS_INFO("Left Button clicked at: %d, %d", x, y);
-     }
-     else if  ( event == cv::EVENT_RBUTTONDOWN )
-     {
-          //cout << "Right button of the mouse is clicked - position (" << x << ", " << y << ")" << endl;
-     }
-     else if  ( event == cv::EVENT_MBUTTONDOWN )
-     {
-          //cout << "Middle button of the mouse is clicked - position (" << x << ", " << y << ")" << endl;
-     }
-     else if ( event == cv::EVENT_MOUSEMOVE )
-     {
-        
-          //cout << "Mouse move over the window - position (" << x << ", " << y << ")" << endl;
 
-     }
-}
+    
+//      void BattleVision::clickCallbackHandler(int event, int x, int y, int flags, void *clickCallback){
+//           BattleVision* ptr = static_cast<BattleVision*>(clickCallback);
+//           ptr->BattleVision::clickCallback(event, x, y);
+//       // static_cast<BattleVision*>(this)clickCallback(event, x, y);
+//     }
+
+
 
 // float MicroComm::mapFloat(float input, float fromMin, float fromMax, float toMin, float toMax){
 //     float m = (toMax - toMin) / (fromMax - fromMin); //slope, should be a constant?

@@ -31,7 +31,7 @@
 class BattleServer {
 public:
     BattleServer(int argc, char **argv, std::string node_name);
- 
+
 
 private:
     
