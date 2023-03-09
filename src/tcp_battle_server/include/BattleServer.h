@@ -25,7 +25,7 @@
 #include <sys/types.h> 
 #include <arpa/inet.h>
 #include <unistd.h>
-#define PORT1 10000//8080 //9000 for battle firmwares
+#define PORT1 9000//8080 //9000 for battle firmwares
 
 
 class BattleServer {
@@ -46,9 +46,9 @@ private:
     //void 
 
     int sockfd, newsockfd;
-  //  socklen_t clilen;
+    socklen_t clilen;
     char buffer[256];
-    struct sockaddr_in serv_addr;//, cli_addr;
+    struct sockaddr_in serv_addr, cli_addr;
     int n; 
     float cartacc = 0.0;
 

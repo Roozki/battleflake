@@ -1,6 +1,7 @@
 #include "battle_TCP.h"
 
 
+
 void setup() {
   Serial.begin(9600);
 
@@ -12,15 +13,14 @@ void setup() {
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
     Serial.println("Connecting to WiFi...");
-  }
+  } 
 
-  Serial.println("Connected to WiFi");
 
   // Connect to the server
   client.onConnect([](void* arg, AsyncClient* c) {
     Serial.println("Connected to server");
     // Send data to the server
-    // c->write("Hello, server!");
+    // c->w;hrite("Hello, server!");
   });
 
   client.onError([](void* arg, AsyncClient* c, int8_t error) {
@@ -35,35 +35,41 @@ void setup() {
     client.onData([](void* arg, AsyncClient* c, void* data, size_t len) {
 
     //Serial.print("Received data: ");
-    //char* temp = data
+   // char* temp = data;
+//    Serial.println(temp);
     String dat = "";
 
      dat = ((String *) data)->c_str();
     int indexTEMP = dat.lastIndexOf(", ");
-    int pwr1 = (dat.substring(7, indexTEMP)).toInt();
+    pwr1 = (dat.substring(7, indexTEMP)).toInt();
     int indexTEMP2 = dat.indexOf(")");
-    int pwr2 = (dat.substring(indexTEMP, indexTEMP2)).toInt();
+    pwr2 = (dat.substring(indexTEMP, indexTEMP2)).toInt();
 
    // CMD((uint8_t*)data, len);
-    Serial.print(pwr1);
-     Serial.print(" we  ");
+   //Serial.println(dat);
+    Serial.write(pwr1);
+     //Serial.print(" we  ");
 
-    Serial.println(pwr2);
+    //Serial.println(pwr2);
 
 
-   // Serial.write((uint8_t*)data, len);
+    Serial.write((uint8_t*)data, len);
   });
-
   client.connect("192.168.1.100", 9000);
+
+
 }
 
 void loop() {
   // Process any incoming data from the server
+    //client.write("helloo");
+
   if (client.connected()) {
 
-    //Serial.println("Still Connected");
-    //client.write("helloo");
-    //delay(100);
+   // Serial.println("Still Connected");
+    client.write("helloo");
+    delay(100);
+
 
     
      //String data = client.read();
@@ -71,6 +77,9 @@ void loop() {
   // Check for any errors or disconnections
   if (!client.connected()) {
     Serial.println("Lost connection to server");
+  client.connect("192.168.1.100", 9000);
+      delay(100);
+
   }
       delay(100);
 

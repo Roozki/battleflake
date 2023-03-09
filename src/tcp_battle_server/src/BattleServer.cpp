@@ -29,9 +29,9 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
 
  //int status, client_fd;
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
-  // if(sockfd < 0){
-  //   ROS_ERROR("error opening socket");
-  // }
+  if(sockfd < 0){
+    ROS_ERROR("error opening socket");
+  }
 
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         ROS_ERROR("\n Socket creation error \n");
@@ -40,51 +40,51 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
 
   serv_addr.sin_family = AF_INET; //sets tcp instead of udp i think
 
-  //serv_addr.sin_addr.s_addr = inet_addr("192.168.0.100");//INADDR_ANY; //auto IP
+  serv_addr.sin_addr.s_addr = inet_addr("192.168.1.100");//INADDR_ANY; //auto IP, also //
 
   serv_addr.sin_port = htons(PORT1);
 
 
 
 //server stuff
- if (inet_pton(AF_INET, "192.168.0.100", &serv_addr.sin_addr)
-        <= 0) {
-        ROS_INFO(
-            "\nInvalid address/ Address not supported \n");
+//  if (inet_pton(AF_INET, "192.168.0.100", &serv_addr.sin_addr)
+//         <= 0) {
+//         ROS_INFO(
+//             "\nInvalid address/ Address not supported \n");
         
-    }
+//     }
 
-  if ((connect(sockfd, (struct sockaddr*)&serv_addr,
-                   sizeof(serv_addr)))
-        < 0) {
-        ROS_INFO("\nConnection Failed \n");
+  // if ((connect(sockfd, (struct sockaddr*)&serv_addr,
+  //                  sizeof(serv_addr)))
+  //       < 0) {
+  //       ROS_INFO("\nConnection Failed \n");
         
-    }
+  //   }
 
 
-  // if (bind(sockfd, (struct sockaddr *) &serv_addr,
-  //   sizeof(serv_addr)) < 0){
-  //  ROS_ERROR("ERROR on binding, killall -9/-15 might help?");
-  //     }
+  if (bind(sockfd, (struct sockaddr *) &serv_addr,
+    sizeof(serv_addr)) < 0){
+   ROS_ERROR("ERROR on binding, killall -9/-15 might help?");
+      }
 
-  //listen(sockfd,5);
+  listen(sockfd,5);
 
-  // clilen = sizeof(cli_addr);
+  clilen = sizeof(serv_addr);
 
-  //  newsockfd = accept(sockfd, 
-  //   (struct sockaddr *) &cli_addr, &clilen);
-  //    if (newsockfd < 0) 
-  //         ROS_ERROR("ERROR on accept");
+   newsockfd = accept(sockfd, 
+    (struct sockaddr *) &serv_addr, &clilen);
+     if (newsockfd < 0) 
+          ROS_ERROR("ERROR on accept");
 
-  //    ROS_INFO("server: got connection from %s port %d\n",
-  //           inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port));
+     ROS_INFO("server: got connection from %s port %d\n",
+            inet_ntoa(serv_addr.sin_addr), ntohs(serv_addr.sin_port));
 
 
    
 
-    //  n = read(newsockfd,buffer,255);
-    //  if (n < 0) ROS_ERROR("ERROR reading from socket");
-    //  ROS_INFO("Here is the message: %s\n",buffer);
+     n = read(newsockfd,buffer,255);
+     if (n < 0) ROS_ERROR("ERROR reading from socket");
+     ROS_INFO("Here is the message: %s\n",buffer);
 
     //  close(newsockfd);
     //  close(sockfd);
@@ -124,42 +124,22 @@ void BattleServer::JoyCallBack(const sensor_msgs::Joy::ConstPtr& msg) {//this ca
  const int thebigone = msg->buttons[8];
  const int lstickB = msg->buttons[9];
  const int rstickB = msg->buttons[9];
-  switch (A - B){
-    case(1):
-      cartacc = cartacc + 0.1;
-      break;
-    case(-1):
-      cartacc -= 0.1;
-      break;
-    case(0):
-      //do nothing
-      break;
-  }
+  // switch (A - B){
+  //   case(1):
+  //     cartacc = cartacc + 0.1;
+  //     break;
+  //   case(-1):
+  //     cartacc -= 0.1;
+  //     break;
+  //   case(0):
+  //     //do nothing
+  //     break;
+  // }
 //int mode = A;
   
-  //MecaCmds(lstickx, lsticky, rsticky, 0.0, 0.0, rstickx, cartacc);
 
  // float axisbalanceR = mapFloat(rtig, 1.0, -1.0, );//dependentAxis(rtrig, 0.0, mode);
  // float axisbalanceL = //dependentAxis(ltrig, 0.0, mode);
-
-
-
-
-  float lx = lstickx;
-  float ly = lsticky;// + rtrig;
-  float lz = rsticky;// * ltrig;
-
-  float rx = 0.0;//rstickx;  
-  float ry = 0.0; //lstickx;// * rtrig;
-  float rz = lstickx;// * ltrig;
-
-
-
-int activate = X;
-int home = Y;
-
-
-  MecaCmds(lx, ly, lz, rx, ry, rz, cartacc, activate, home);
 
 
     // if (rsticky < 0.1 && rsticky > -0.1){ //better to handle deadzone in joy_node run params
@@ -193,8 +173,8 @@ int home = Y;
    
 
    //ROS_INFO("%i", cmd.mode[S1]);
-   //sendCmds(PWR1yL, PWR1zR);
-    ros::Rate loop_rate(100); //send rate in hz, slows down sending cmds even if joy node is rate set
+   sendCmds(PWR1yL, PWR1zR);
+    ros::Rate loop_rate(50); //send rate in hz, slows down sending cmds even if joy node is rate set
     loop_rate.sleep();
     ros::spinOnce();
 }

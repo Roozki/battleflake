@@ -18,6 +18,9 @@ int mode, drive1PWR, drive2PWR, hammerPWR;
 int pin1 = 0;
 int pin2 = 1;
 
+int pwr1 = 0;
+int pwr2 = 0;
+
 int beatTEMP = millis();
 int beatINTERVAL = 1000; //ms
 int posTEMP = millis();
