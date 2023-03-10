@@ -5,8 +5,12 @@
 void setup() {
   Serial.begin(9600);
 
- pinMode(pin1, OUTPUT);
- pinMode(pin2, OUTPUT);
+  pinMode(MOT_PIN_L_1, OUTPUT);
+  pinMode(MOT_PIN_L_2, OUTPUT);
+  pinMode(MOT_PIN_L_PWM, OUTPUT);
+  pinMode(MOT_PIN_R_1, OUTPUT);
+  pinMode(MOT_PIN_R_2, OUTPUT);
+  pinMode(MOT_PIN_R_PWM, OUTPUT);
 
   WiFi.begin(ssid, pass);
 
@@ -37,23 +41,25 @@ void setup() {
     //Serial.print("Received data: ");
    // char* temp = data;
 //    Serial.println(temp);
-    String dat = "";
+    char* bus = "";
 
-     dat = ((String *) data)->c_str();
+     bus = ((char*) data);
+     String dat = bus;
     int indexTEMP = dat.lastIndexOf(", ");
-    pwr1 = (dat.substring(7, indexTEMP)).toInt();
+   int linX = (dat.substring(7, indexTEMP)).toInt();
     int indexTEMP2 = dat.indexOf(")");
-    pwr2 = (dat.substring(indexTEMP, indexTEMP2)).toInt();
+   int angZ = (dat.substring(indexTEMP + 1, indexTEMP2 + 1)).toInt();
 
    // CMD((uint8_t*)data, len);
-   //Serial.println(dat);
-    Serial.write(pwr1);
+ //  Serial.print(dat);
+  //  Serial.write(pwr1);
      //Serial.print(" we  ");
 
-    //Serial.println(pwr2);
+    //Serial.write((uint8_t*)pwr2, len);
+   // Serial.println(pwr1);
 
-
-    Serial.write((uint8_t*)data, len);
+    CMD(linX, angZ);
+    //Serial.write((uint8_t*)data, len);
   });
   client.connect("192.168.1.100", 9000);
 
@@ -65,28 +71,49 @@ void loop() {
     //client.write("helloo");
 
   if (client.connected()) {
+      client.write("init_robot_1");
+
 
    // Serial.println("Still Connected");
-    client.write("helloo");
-    delay(100);
-
-
-    
      //String data = client.read();
+     //delay(10);
   }
   // Check for any errors or disconnections
   if (!client.connected()) {
     Serial.println("Lost connection to server");
   client.connect("192.168.1.100", 9000);
-      delay(100);
+     // delay(100);
 
   }
-      delay(100);
+      //delay(10);
 
 }
 
 
-void CMD(int pwr1, int pwr2){
+void CMD(int lin, int ang){
+
+  int pwr1 = lin + ang;
+  int pwr2 = lin - ang;
+
+  if (pwr1 > 0){
+    digitalWrite(MOT_PIN_L_1, HIGH);
+    digitalWrite(MOT_PIN_L_2, LOW);
+  }else{
+    digitalWrite(MOT_PIN_L_1, LOW);
+    digitalWrite(MOT_PIN_L_2, HIGH);
+  }
+  analogWrite(MOT_PIN_L_PWM, abs(pwr1 * 10));
+
+    if (pwr2 > 0){
+    digitalWrite(MOT_PIN_R_1, HIGH);
+    digitalWrite(MOT_PIN_R_2, LOW);
+  }else{
+    digitalWrite(MOT_PIN_R_1, LOW);
+    digitalWrite(MOT_PIN_R_2, HIGH);
+  }
+  analogWrite(MOT_PIN_R_PWM, abs(pwr2 * 10));
+
+  
 
 
 }
