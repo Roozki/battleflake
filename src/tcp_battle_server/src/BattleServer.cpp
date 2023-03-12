@@ -9,17 +9,21 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
     ros::NodeHandle nh;
     ros::NodeHandle private_nh("~");
 
-    setup();
+    setup(joy_mode);
     // Obtains character from the parameter server (or launch file), sets '!' as default
     //std::string parameter_name    = "character";
     //std::string default_character = "!";
 //    SB_getParam(private_nh, parameter_name, suffix, default_character);
 
     // Setup Subscriber(s)
-    std::string topic_to_subscribe_to = "joy";
-    int queue_size                    = 1;
-    joy_sub                    = nh.subscribe(
-    topic_to_subscribe_to, queue_size, &BattleServer::JoyCallBack, this);
+   // std::string topic_to_subscribe_to = "joy";
+    //int queue_size                    = 1;
+    joy_sub = 
+    nh.subscribe("joy", 1, &BattleServer::JoyCallback, this);
+
+    vision_sub =
+    nh.subscribe("visionCMD", 1, &BattleServer::VisionCMDCallback, this);
+    
 
     // Setup Publisher(s)
     // std::string topic = private_nh.resolveName("robot_1_CMD");
@@ -65,9 +69,11 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
   if (bind(sockfd, (struct sockaddr *) &serv_addr,
     sizeof(serv_addr)) < 0){
    ROS_ERROR("ERROR on binding, killall -9/-15 might help?");
+      }else{
+ROS_INFO("Socket was free, bind successful");
       }
+        listen(sockfd,5);
 
-  listen(sockfd,5);
 
   clilen = sizeof(serv_addr);
 
@@ -84,31 +90,48 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
 
      n = read(newsockfd,buffer,255);
      if (n < 0) ROS_ERROR("ERROR reading from socket");
-     ROS_INFO("Here is the message: %s\n",buffer);
+     ROS_INFO("Client has connected: %s\n",buffer);
 
     //  close(newsockfd);
     //  close(sockfd);
 }
-  void BattleServer::setup() {
-     system(
-     "gnome-terminal --tab -- bash -c 'rosrun joy joy_node _deadzone:=0.3 _autorepeat_rate:=20 _coalesce_interval:=0.05'");
+  void BattleServer::setup(int mode) {
+    switch (mode){
+      case joy_mode:
+         system(
+        "gnome-terminal --tab -- bash -c 'rosrun joy joy_node _deadzone:=0.3 _autorepeat_rate:=20 _coalesce_interval:=0.05'");
+        ROS_INFO(
+        "JOYSTICK MODE DETECTED\n");
+        ROS_INFO(
+        "ALLCONTROLLER INITIATED, CURRENTLY PARSING FOR XBOX360");
+        break;
 
-     ROS_INFO(
-     "ALLCONTROLLER INITIATED, CURRENTLY PARSING FOR XBOX360");
+      case vision_mode:
+        ROS_INFO("VISION MODE DETECTED, JOYSTICK WILL NOT INITIATE");
+        break;
+      default:
+          ROS_WARN("No setup mode set, something went wrong");
+
+        break;
+    }
+
+    ROS_INFO("Battle Main Control Node has started, attempting network initiation.");
+
+     
 }
 
 
-void BattleServer::JoyCallBack(const sensor_msgs::Joy::ConstPtr& msg) {//this callback is way too long i think
+void BattleServer::JoyCallback(const sensor_msgs::Joy::ConstPtr& msg) {//this callback is way too long i think
   //  ROS_INFO("Received joy message");
   //linear speed
   int lspeed = 1;
   int rspeed = 1;
   //axes
- const float lstickx = msg->axes[0] * lspeed; 
- const float lsticky = msg->axes[1] * lspeed;
+ const float lstickx = msg->axes[0];// * lspeed; 
+ const float lsticky = msg->axes[1];// * lspeed;
  const float ltrig = msg->axes[2];
- const float rstickx = msg->axes[3] * lspeed;
- const float rsticky = msg->axes[4] * rspeed;
+ const float rstickx = msg->axes[3];// * lspeed;
+ const float rsticky = msg->axes[4];// * rspeed;
  const float rtrig = msg->axes[5];
  const float dpadx = msg->axes[6];
  const float dpady = msg->axes[7];
@@ -174,9 +197,10 @@ void BattleServer::JoyCallBack(const sensor_msgs::Joy::ConstPtr& msg) {//this ca
 
    //ROS_INFO("%i", cmd.mode[S1]);
    sendCmds(PWR1yL, PWR1zR);
-    ros::Rate loop_rate(50); //send rate in hz, slows down sending cmds even if joy node is rate set
-    loop_rate.sleep();
-    ros::spinOnce();
+    //ros::Rate loop_rate(5); //send rate in hz, slows down sending cmds even if joy node is rate set
+
+     //loop_rate.sleep();
+     ros::spinOnce();
 }
 
 float BattleServer::dependentAxis(float MasterAxis, float SlaveAxis, int mode){ //i think the naming convention 'master' and 'slave' should change as its potentially harmful language, but it be what it be for now
@@ -201,28 +225,23 @@ void BattleServer::sendCmds(int robot1_Ly, int robot1_Rz){
  int Ly_length = std::strlen(std::to_string(robot1_Ly).c_str());
  int Rz_length = std::strlen(std::to_string(robot1_Rz).c_str());
 
-  // char Ly[Ly_length] = std::to_string(robot1_Ly);
-  // char Rz[Rz_length] = std::to_string(robot1_Rz);
-    
-    // int outmsgSize = //Ly_length + Rz_length;
-    //std::string command = "yoyo";
-   //const char* 
 
    const int bufferSize = Ly_length + Rz_length + 12; //12 is size of surrounding characters
    char buffer[bufferSize];
   std::sprintf(buffer, "moveR1(%d, %d)\n", robot1_Ly, robot1_Rz);
-   //outmsg << command[0]; //new char[outmsgSize + 1];
-
-     //int outmsgSize = std::strlen(outmsg);//Ly_length + Rz_length;
-
+  
     // This send function sends the correct number bytes of the string to the socket
      
      send(newsockfd, buffer, bufferSize, 0);
 
-     //bzero(buffer,256);
+     bzero(buffer, bufferSize);
 
-   // cmd_pub.publish(cmd);
-   //delete[] outmsg;
+
+ }
+
+ void BattleServer::VisionCMDCallback(const geometry_msgs::Twist::ConstPtr& msg){
+   
+  sendCmds(msg->linear.x, msg->angular.z);
 
  }
 

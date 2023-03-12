@@ -20,6 +20,8 @@
 void sendCmd();
 void CMD(int lin, int ang);
 
+bool connect_flag = false;
+
 
 const char* ssid = "battle_network";
 const char* pass = "guest123";
