@@ -14,7 +14,7 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
     ros::init(argc, argv, node_name);
     ros::NodeHandle nh;
     ros::NodeHandle private_nh("~");
-     ros::Rate loop_rate(3);
+     ros::Rate loop_rate(30);
     // Obtains character from the parameter server (or launch file), sets '!' as default
     //std::string parameter_name    = "character";
     //std::string default_character = "!";
@@ -40,10 +40,14 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
 //      }
 //        //Create a window
      VideoCapture cap(0);
+     
      if (!cap.isOpened())
     {
         ROS_ERROR("Failed to open camera");
     }
+    
+    //double fps = cap.get(CAP_PROP_FPS);
+    ROS_WARN("%f", fps);
      cv::namedWindow("Battle Eye", 0);
      cv::setMouseCallback("Battle Eye", &BattleVision::clickCallbackHandler, this);
 
@@ -54,17 +58,17 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
 
     while (ros::ok())
     {
-//        cap.grab(frame);
- //cv::setMouseCallback("Battle Eye", &BattleVision::clickCallbackHandler, this);
 
-cap >> frame;
+    cap >> frame;
+  
+    //qDebug()  <<" VideoStreamer::queryFrame " + QString::number(elapsedTimer.elapsed());
    // resize(frame, frame, targetResolution);
   //  Mat img = frame;//imread(frame);
-     //    if (frame.empty())
-     //    {
-     //        ROS_ERROR("Failed to read frame from camera");
-     //        break;
-     //    }
+        if (frame.empty())
+         {
+             ROS_ERROR("Failed to read frame from camera");
+         }
+         cap.set(CAP_PROP_FPS, BattleVision::fps);
         ros::spinOnce();
 
         imshow("Battle Eye", frame);

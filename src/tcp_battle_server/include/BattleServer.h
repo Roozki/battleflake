@@ -47,7 +47,7 @@ private:
      void VisionCMDCallback(const geometry_msgs::Twist::ConstPtr& msg);
 
 
-    void sendCmds(int robot1_Ly, int robot1_Rz);
+    void sendCmds(int robot1_Ly, int robot1_Rz, int hammerPOS);
     void MecaCmds(float lx, float ly, float lz, float rx, float ry, float rz, float cartacc, int activate, int home);
     void setup(int mode);
    // void setupJoy();

@@ -31,11 +31,18 @@ public:
 
     BattleVision(int argc, char **argv, std::string node_name);
 
+     float fps = 20.0;
     void clickCallback(int event, int x, int y, int flags){
          if  ( event == EVENT_LBUTTONDOWN )
      {
         //  cout << "Left button of the mouse is clicked - position (" << x << ", " << y << ")" << endl;
         ROS_INFO("Left Button clicked at: %d, %d", x, y);
+          if(x > 500){
+               fps--;
+          }
+          else{
+               fps++;
+          }
        // Battpt.x = x;
        // BattleVision::pt.y = y;
      }

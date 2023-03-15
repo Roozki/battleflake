@@ -70,7 +70,7 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
     sizeof(serv_addr)) < 0){
    ROS_ERROR("ERROR on binding, killall -9/-15 might help?");
       }else{
-ROS_INFO("Socket was free, bind successful");
+   ROS_INFO("Socket was free, bind successful");
       }
         listen(sockfd,5);
 
@@ -99,7 +99,7 @@ ROS_INFO("Socket was free, bind successful");
     switch (mode){
       case joy_mode:
          system(
-        "gnome-terminal --tab -- bash -c 'rosrun joy joy_node _deadzone:=0.3 _autorepeat_rate:=20 _coalesce_interval:=0.05'");
+        "gnome-terminal --tab -- bash -c 'rosrun joy joy_node _deadzone:=0.02 _autorepeat_rate:=20 _coalesce_interval:=0.05'");
         ROS_INFO(
         "JOYSTICK MODE DETECTED\n");
         ROS_INFO(
@@ -168,18 +168,20 @@ void BattleServer::JoyCallback(const sensor_msgs::Joy::ConstPtr& msg) {//this ca
     // if (rsticky < 0.1 && rsticky > -0.1){ //better to handle deadzone in joy_node run params
     //     rsticky = 0.0;
     // }
-    // if (rstickx < 0.1 && rstickx > -0.1){
+    // if (rstickx < 0.1 && rstisckx > -0.1){
     //     rstickx = 0.0;
     // }
    
 
-    float PWR = mapFloat(rtrig, 1.0, -1.0, 0.0, 100.0);
-    float REVERSE = mapFloat(ltrig, 1.0, -1.0, 0.0, 100.0);
+    //float PWR = mapFloat(rsticky, 1.0, -1.0, 0.0, 100.0);
+   // float REVERSE = mapFloat(ltrig, 1.0, -1.0, 0.0, 100.0);
+
+    float maphammer = mapFloat(rtrig, 1.0, -1.0, 0.0, 200.0);
+    int hammer = maphammer;
 
 
-
-    int PWR1yL = PWR - REVERSE;
-    int PWR1zR = rstickx * 100;
+    int PWR1yL = (rsticky + lsticky) * 100;
+    int PWR1zR = (rstickx + lstickx) * 100;
     
   if(PWR1yL > 100){
     PWR1yL = 100;
@@ -196,7 +198,7 @@ void BattleServer::JoyCallback(const sensor_msgs::Joy::ConstPtr& msg) {//this ca
    
 
    //ROS_INFO("%i", cmd.mode[S1]);
-   sendCmds(PWR1yL, PWR1zR);
+   sendCmds(PWR1yL, PWR1zR, hammer);
     //ros::Rate loop_rate(5); //send rate in hz, slows down sending cmds even if joy node is rate set
 
      //loop_rate.sleep();
@@ -219,16 +221,16 @@ float BattleServer::dependentAxis(float MasterAxis, float SlaveAxis, int mode){ 
   return factor;
 }
 
-void BattleServer::sendCmds(int robot1_Ly, int robot1_Rz){
+void BattleServer::sendCmds(int robot1_Ly, int robot1_Rz, int hammer){
 
 
  int Ly_length = std::strlen(std::to_string(robot1_Ly).c_str());
  int Rz_length = std::strlen(std::to_string(robot1_Rz).c_str());
+ int h_length  = std::strlen(std::to_string(hammer).c_str());
 
-
-   const int bufferSize = Ly_length + Rz_length + 12; //12 is size of surrounding characters
+   const int bufferSize = Ly_length + Rz_length + h_length + 14; //14 bytes is size of surrounding characters, including spaces
    char buffer[bufferSize];
-  std::sprintf(buffer, "moveR1(%d, %d)\n", robot1_Ly, robot1_Rz);
+  std::sprintf(buffer, "moveR1(%d,a%d,b%d,c)\n", robot1_Ly, robot1_Rz, hammer);
   
     // This send function sends the correct number bytes of the string to the socket
      
@@ -239,9 +241,9 @@ void BattleServer::sendCmds(int robot1_Ly, int robot1_Rz){
 
  }
 
- void BattleServer::VisionCMDCallback(const geometry_msgs::Twist::ConstPtr& msg){
+ void BattleServer::VisionCMDCallback(const geometry_msgs::Twist::ConstPtr& msg){ //should be custom msg
    
-  sendCmds(msg->linear.x, msg->angular.z);
+  //sendCmds(msg->linear.x, msg->angular.z);
 
  }
 
