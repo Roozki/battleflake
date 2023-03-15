@@ -68,9 +68,9 @@ void setup() {
     int indexHAM = dat.indexOf("c");
     int hammerPOS = (dat.substring(indexRZ + 1, indexHAM).toInt());
 
-    Serial.println(angZ);
-    Serial.println(hammerPOS);
-    Serial.println(linX);
+    //Serial.println(angZ);
+    //Serial.println(hammerPOS);
+    //Serial.println(linX);
     CMD(linX, angZ, hammerPOS);
     //Serial.write((uint8_t*)data, len);
   });
@@ -92,30 +92,27 @@ void CMD(int lin, int ang, int hammerPOS) {
 
   int pwr1 = lin + ang;
   int pwr2 = lin - ang;
-  int hammerUs = map(hammerPOS, 0, 201, 10, 100);
+  int hammerUs = map(hammerPOS, 0, 201, 5, 90);
   //delay(10);
   hammer.write(hammerUs);
-  Serial.println(hammerUs);
+  //Serial.println(hammerUs);
 
 
-  // if (pwr1 > 0){
-  //   digitalWrite(MOT_PIN_L_1, HIGH);
-  //   digitalWrite(MOT_PIN_L_2, LOW);
-  // }else{
-  //   digitalWrite(MOT_PIN_L_1, LOW);
-  //   digitalWrite(MOT_PIN_L_2, HIGH);
-  // }
-  // analogWrite(MOT_PIN_L_PWM, abs(pwr1*4));
+  if (pwr1 > 0){
+    digitalWrite(MOT_PIN_L_1, HIGH);
+    digitalWrite(MOT_PIN_L_2, LOW);
+  }else{
+    digitalWrite(MOT_PIN_L_1, LOW);
+    digitalWrite(MOT_PIN_L_2, HIGH);
+  }
+  analogWrite(MOT_PIN_L_PWM, abs(pwr1*4));
 
   if (pwr2 > 0) {
-    //   digitalWrite(MOT_PIN_R_1, HIGH);
-    //   digitalWrite(MOT_PIN_R_2, LOW);
-    // }else{
-    //   digitalWrite(MOT_PIN_R_1, LOW);
-    //   digitalWrite(MOT_PIN_R_2, HIGH);
-    // Serial.println("HAMMER");
-  } else {
-    // hammer.writeMicroseconds(1200);
+      digitalWrite(MOT_PIN_R_1, HIGH);
+      digitalWrite(MOT_PIN_R_2, LOW);
+    }else{
+      digitalWrite(MOT_PIN_R_1, LOW);
+      digitalWrite(MOT_PIN_R_2, HIGH);
   }
-  // analogWrite(MOT_PIN_R_PWM, abs(pwr2*4));
+   analogWrite(MOT_PIN_R_PWM, abs(pwr2*4));
 }

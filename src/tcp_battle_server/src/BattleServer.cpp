@@ -99,7 +99,7 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
     switch (mode){
       case joy_mode:
          system(
-        "gnome-terminal --tab -- bash -c 'rosrun joy joy_node _deadzone:=0.02 _autorepeat_rate:=20 _coalesce_interval:=0.05'");
+        "gnome-terminal --tab -- bash -c 'rosrun joy joy_node _deadzone:=0.05 _autorepeat_rate:=20 _coalesce_interval:=0.05'");
         ROS_INFO(
         "JOYSTICK MODE DETECTED\n");
         ROS_INFO(
@@ -159,7 +159,7 @@ void BattleServer::JoyCallback(const sensor_msgs::Joy::ConstPtr& msg) {//this ca
   //     break;
   // }
 //int mode = A;
-  
+
 
  // float axisbalanceR = mapFloat(rtig, 1.0, -1.0, );//dependentAxis(rtrig, 0.0, mode);
  // float axisbalanceL = //dependentAxis(ltrig, 0.0, mode);

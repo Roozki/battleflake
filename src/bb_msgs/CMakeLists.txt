@@ -7,6 +7,7 @@ project(bb_msgs)
 find_package(catkin REQUIRED
     roscpp
     std_msgs
+    geometry_msgs
     message_generation
     )
 
@@ -18,16 +19,17 @@ find_package(catkin REQUIRED
 add_message_files(
     DIRECTORY msg
     FILES battleCmd.msg
+    bbVision2point.msg
 )
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
-    DEPENDENCIES std_msgs
+    DEPENDENCIES std_msgs geometry_msgs
 )
 
 ###################################
 ## catkin specific configuration ##
 ###################################
 catkin_package(
-        CATKIN_DEPENDS message_runtime std_msgs
+        CATKIN_DEPENDS message_runtime std_msgs geometry_msgs
 )

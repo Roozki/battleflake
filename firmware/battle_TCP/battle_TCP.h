@@ -7,9 +7,9 @@
 //left drive motor
 #define MOT_PIN_L_1 18
 #define MOT_PIN_L_2 5
-#define MOT_PIN_L_PWM 1
+#define MOT_PIN_L_PWM 17
 
-#define HAMMER_PIN 17
+#define HAMMER_PIN 
 
 //right drive motor
 #define MOT_PIN_R_1 23
