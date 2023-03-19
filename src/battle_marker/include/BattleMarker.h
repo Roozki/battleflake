@@ -39,7 +39,7 @@ class BattleMarker {
      *
      * @param msg the string received in the callback
      */
-    void subscriberCallBack(const sensor_msgs::Image::ConstPtr& msg);
+    void frameCallback(const sensor_msgs::Image::ConstPtr& msg);
 
     std::vector<int> processMarkers(const cv::Mat& image);
 

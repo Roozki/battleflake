@@ -1,5 +1,5 @@
 /*
- * author: Rowan Zawadzki
+* author: Rowan Zawadzki
 */
 
 #ifndef SAMPLE_PACKAGE_MYNODE_H
@@ -17,13 +17,18 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-//#include <opencv2/objdetect/objdetect.hpp>
+#include <opencv2/aruco.hpp>
 #include <opencv2/opencv.hpp>
 
 // Image Conversion
 #include <cv_bridge/cv_bridge.h>
+#include <image_transport/image_transport.h>
 #include <image_transport/subscriber.h>
 #include <sensor_msgs/image_encodings.h>
+
+//bb includes
+#include<bb_msgs/bbVision2point.h>
+
 
 using namespace cv;
 class BattleVision {
@@ -31,7 +36,7 @@ public:
 
     BattleVision(int argc, char **argv, std::string node_name);
 
-     float fps = 20.0;
+     float fps = 30.0;
     void clickCallback(int event, int x, int y, int flags){
          if  ( event == EVENT_LBUTTONDOWN )
      {
@@ -70,19 +75,22 @@ public:
 
 
 private:
-     //Point pt(1,1);
+    void frameCallback(const sensor_msgs::Image::ConstPtr& msg);
 
-   
-   // float mapFloat(float input, float fromMin, float fromMax, float toMin, float toMax);
+     
+    std::vector<int> processMarkers(const cv::Mat& image);
 
-   // void JoyCallBack(const sensor_msgs::Joy::ConstPtr& msg);
-  //  void sendCmd();
-   
+    cv::Mat rosToMat(const sensor_msgs::Image::ConstPtr& image);
+
+    image_transport::Subscriber shutter;
+    ros::Publisher my_publisher;
+    image_transport::Publisher bounder;
+    ros::Publisher point_pub;
 
 
-    // ros::Subscriber joy_sub;
-    // ros::Publisher cmd_pub;
-    // sensor_msgs::Joy joy;
-    // bb_msgs::battleCmd cmd;
+    cv::Ptr<cv::aruco::Dictionary> dictionary;
+    cv::Ptr<cv::aruco::DetectorParameters> parameters;
+    bool draw_markers = true;
+    int camera        = 1;
 };
 #endif //SAMPLE_PACKAGE_MYNODE_H

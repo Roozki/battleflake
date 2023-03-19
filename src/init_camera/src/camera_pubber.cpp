@@ -14,9 +14,9 @@
 void shutter(){
     ros::NodeHandle nh;
     ros::Rate loop_rate(30);
-    VideoCapture cap(0); // captures the first camera
+    VideoCapture cap(1); // captures the first camera
     float fps = 30;
-    cap.set(CAP_PROP_FPS, fps);
+   
 
     image_transport::ImageTransport it(nh);
     image_transport::Publisher pub = it.advertise("cam_1/color/image_raw", 2);
@@ -24,12 +24,16 @@ void shutter(){
          unsigned int width = cap.get(CAP_PROP_FRAME_WIDTH); 
     unsigned int height = cap.get(CAP_PROP_FRAME_HEIGHT); 
     unsigned int pixels = width*height;
-         Mat inputImage(width, height, pixels);
+         Mat inputImage(1280, 720, 1280*720);
 
  if (!cap.isOpened()) {
         cout << "Camera cannot be opened" << endl;
-        ROS_ERROR("AHHH");    }
+        ROS_ERROR("AHHH");  
+           //  VideoCapture cap(1); // captures the first camera
+  }
 
+
+ cap.set(CAP_PROP_FPS, fps);
 while (nh.ok()) {
         cap.read(inputImage);
         // if (!isRead) {

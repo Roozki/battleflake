@@ -50,7 +50,6 @@
   <run_depend>bb_msgs</run_depend>
   <run_depend>std_msgs</run_depend>
   <run_depend>cv_bridge</run_depend>
-  <run_depend>sb_utils</run_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

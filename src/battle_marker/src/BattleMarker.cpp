@@ -30,7 +30,7 @@ BattleMarker::BattleMarker(int argc, char** argv, std::string node_name) {
     }
     int queue_size = 5;
     my_subscriber  = it.subscribe(
-    topic_to_subscribe_to, queue_size, &BattleMarker::subscriberCallBack, this);
+    topic_to_subscribe_to, queue_size, &BattleMarker::frameCallback, this);
 
     // Setup Publisher(s)
     // marker id data (string)
@@ -45,14 +45,14 @@ BattleMarker::BattleMarker(int argc, char** argv, std::string node_name) {
 
     ROS_INFO("initiation appears successfull.");
     if (draw_markers) {
-        ROS_INFO("I WILL ATTEMPT TO DRAW DETECTED MARKERS");
+        ROS_WARN("I WILL ATTEMPT TO DRAW DETECTED MARKERS");
     } else {
-        ROS_WARN(
+        ROS_ERROR(
         "I WILL ****NOT**** ATTEMPT TO DRAW DETECTED MARKERS");
     }
 }
 
-void BattleMarker::subscriberCallBack(const sensor_msgs::Image::ConstPtr& msg) {
+void BattleMarker::frameCallback(const sensor_msgs::Image::ConstPtr& msg) {
     ROS_INFO("Received message");
     std::vector<int> markerIds = processMarkers(rosToMat(msg));
     std::cout << "Markers detected:";
