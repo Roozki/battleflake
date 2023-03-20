@@ -38,7 +38,7 @@ public:
     BattleServer(int argc, char **argv, std::string node_name);
 
 
-private:
+private: 
 
 
     float mapFloat(float input, float fromMin, float fromMax, float toMin, float toMax);

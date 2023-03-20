@@ -12,6 +12,7 @@
 //#include <std_msgs/String.h>
 #include <ros/ros.h>
 #include <sensor_msgs/Joy.h>
+#include <geometry_msgs/Twist.h>
 
 // OpenCV
 #include <opencv2/core/core.hpp>
@@ -28,6 +29,7 @@
 
 //bb includes
 #include<bb_msgs/bbVision2point.h>
+#include<bb_msgs/battleCmd.h>
 
 
 using namespace cv;
@@ -41,15 +43,10 @@ public:
          if  ( event == EVENT_LBUTTONDOWN )
      {
         //  cout << "Left button of the mouse is clicked - position (" << x << ", " << y << ")" << endl;
-        ROS_INFO("Left Button clicked at: %d, %d", x, y);
-          if(x > 500){
-               fps--;
-          }
-          else{
-               fps++;
-          }
+               
        // Battpt.x = x;
        // BattleVision::pt.y = y;
+       BattleVision::processClick(x, y);
      }
      else if  ( event == EVENT_RBUTTONDOWN )
      {
@@ -76,6 +73,10 @@ public:
 
 private:
     void frameCallback(const sensor_msgs::Image::ConstPtr& msg);
+     bool robotTracked = false;
+     cv::Point2f m1;
+     cv::Point2f m2;
+     cv::Point2f click;
 
      
     std::vector<int> processMarkers(const cv::Mat& image);
@@ -83,10 +84,15 @@ private:
     cv::Mat rosToMat(const sensor_msgs::Image::ConstPtr& image);
 
     image_transport::Subscriber shutter;
-    ros::Publisher my_publisher;
+    ros::Publisher cmd_pubber;
     image_transport::Publisher bounder;
     ros::Publisher point_pub;
 
+    void processClick(int x, int y);
+    void sendCmd();
+
+
+     cv::Mat outputImage;
 
     cv::Ptr<cv::aruco::Dictionary> dictionary;
     cv::Ptr<cv::aruco::DetectorParameters> parameters;

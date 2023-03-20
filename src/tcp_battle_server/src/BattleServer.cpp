@@ -9,7 +9,7 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
     ros::NodeHandle nh;
     ros::NodeHandle private_nh("~");
 
-    setup(joy_mode);
+    setup(vision_mode);
     // Obtains character from the parameter server (or launch file), sets '!' as default
     //std::string parameter_name    = "character";
     //std::string default_character = "!";
@@ -22,7 +22,7 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
     nh.subscribe("joy", 1, &BattleServer::JoyCallback, this);
 
     vision_sub =
-    nh.subscribe("visionCMD", 1, &BattleServer::VisionCMDCallback, this);
+    nh.subscribe("robot1_cmd_vel", 1, &BattleServer::VisionCMDCallback, this);
     
 
     // Setup Publisher(s)
@@ -100,17 +100,17 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
       case joy_mode:
          system(
         "gnome-terminal --tab -- bash -c 'rosrun joy joy_node _deadzone:=0.05 _autorepeat_rate:=20 _coalesce_interval:=0.05'");
-        ROS_INFO(
+        ROS_WARN(
         "JOYSTICK MODE DETECTED\n");
         ROS_INFO(
         "ALLCONTROLLER INITIATED, CURRENTLY PARSING FOR XBOX360");
         break;
 
       case vision_mode:
-        ROS_INFO("VISION MODE DETECTED, JOYSTICK WILL NOT INITIATE");
+        ROS_WARN("VISION MODE DETECTED, JOYSTICK WILL NOT INITIATE");
         break;
       default:
-          ROS_WARN("No setup mode set, something went wrong");
+          ROS_ERROR("No setup mode set, something went wrong");
 
         break;
     }
@@ -243,7 +243,13 @@ void BattleServer::sendCmds(int robot1_Ly, int robot1_Rz, int hammer){
 
  void BattleServer::VisionCMDCallback(const geometry_msgs::Twist::ConstPtr& msg){ //should be custom msg
    
-  //sendCmds(msg->linear.x, msg->angular.z);
+
+   int x = msg->linear.x;
+   int z = msg->angular.z;
+   int hammer = 0;
+   
+  sendCmds(x, z, hammer);
+
 
  }
 
