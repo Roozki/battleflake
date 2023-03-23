@@ -18,7 +18,9 @@
 
 Servo hammer;
 
-
+int pwr1;
+int pwr2;
+int hammerUs; //hammer microsecond pulse width for PWM
 
 void sendCmd();
 void CMD(int lin, int ang, int hammerPOS);

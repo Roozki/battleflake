@@ -51,7 +51,7 @@ private:
     void MecaCmds(float lx, float ly, float lz, float rx, float ry, float rz, float cartacc, int activate, int home);
     void setup(int mode);
    // void setupJoy();
-
+    void readRobot();
     float dependentAxis(float MasterAxis, float SlaveAxis, int mode); //i think the naming convention 'master' and 'slave' should change as its potentially harmful language, but it be what it be for now
 
     //void 
@@ -59,6 +59,7 @@ private:
     int sockfd, newsockfd;
     socklen_t clilen;
     char buffer[256];
+    char readBuffer[256];
     struct sockaddr_in serv_addr, cli_addr;
     int n; 
     float cartacc = 0.0;

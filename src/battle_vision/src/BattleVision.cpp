@@ -12,7 +12,7 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
     ros::init(argc, argv, node_name);
     ros::NodeHandle nh;
     ros::NodeHandle private_nh("~");
-    ros::Rate loop_rate(30);
+    ros::Rate loop_rate(fps);
 
 
     // Setup image transport
@@ -47,11 +47,17 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
     }
 
     //Create a window
-     VideoCapture cap(1);
-     
+    VideoCapture cap;
+    //iterate through cameras, make sure only one is connected
+    for(int i = 0; i < 10; i++){
+     cap.open(i);
      if (!cap.isOpened())
     {
-        ROS_ERROR("Failed to open camera");
+        ROS_ERROR("Failed to open camera: %d", i);
+
+    }else{
+        i = 10;
+    }
     }
     
     //double fps = cap.get(CAP_PROP_FPS);
@@ -60,7 +66,7 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
      cv::setMouseCallback("Battle Eye", &BattleVision::clickCallbackHandler, this);
 
       Mat frame;
-      Size targetResolution(1280, 720);
+      Size targetResolution(1920, 1080);
 
     
     cap.set(CAP_PROP_FPS, BattleVision::fps);
@@ -70,19 +76,17 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
 
     cap >> frame;
   
-    //qDebug()  <<" VideoStreamer::queryFrame " + QString::number(elapsedTimer.elapsed());
-   // resize(frame, frame, targetResolution);
-  //  Mat img = frame;//imread(frame);
-        if (frame.empty())
-         {
-             ROS_ERROR("Failed to read frame from camera");
-         }
+      
             ros::spinOnce();
 
-            cv::waitKey(1000/30);
+            cv::waitKey(1000/fps);
             loop_rate.sleep();
-
+  if (frame.empty())
+         {
+             ROS_WARN("Failed to read frame from camera");
+         }else{
             processMarkers(frame);
+         }
 
     }
 
@@ -126,8 +130,9 @@ std::vector<int> BattleVision::processMarkers(const cv::Mat& image) {
         .toImageMsg());
 
 
-    imshow("Battle Eye", outputImage);
     sendCmd();
+
+    imshow("Battle Eye", outputImage);
 
     }
 
@@ -164,11 +169,14 @@ float cross = currTraj.x * desTraj.y - currTraj.y * desTraj.x;
 
 
 if (cross > 0){
-ROS_ERROR("angle is clockwise: %.5f", angle);
-
+std::string wee("angle is: ");
+wee += std::to_string(angle);
+    cv::putText(outputImage, wee, angle_to_go_point, font1, fontScale, cv::Scalar(0, 100, 0), thickness, lineType, false);
     cmd.angular.z = -40;
 }else if (cross < 0){
-ROS_WARN("angle is counterclockwise: %.5f", angle);
+std::string wee("angle is: ");
+wee += std::to_string(-angle);
+    cv::putText(outputImage, wee, angle_to_go_point, font1, fontScale, cv::Scalar(110, 0, 0), thickness, lineType, false);
 
     cmd.angular.z = 40;
 

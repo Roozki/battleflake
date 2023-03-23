@@ -1,4 +1,5 @@
 #include "battle_TCP.h"
+//#include "std/string.h"
 
 
 
@@ -53,7 +54,10 @@ void setup() {
   });
 
   client.onData([](void* arg, AsyncClient* c, void* data, size_t len) {
-    client.write("init_robot_1\n");
+    String sendBuffer_str = "R1(" + String(pwr1); + ",a" + String(pwr2) + ",b" + String(hammerUs) + ",c)\n";
+    char sendBuffer[sendBuffer_str.length() + 1];
+    sendBuffer_str.toCharArray(sendBuffer, sizeof(sendBuffer));
+    c->write(sendBuffer);
     //Serial.print("Received data: ");
     // char* temp = data;
     //    Serial.println(temp);
@@ -90,9 +94,9 @@ void loop() {
 
 void CMD(int lin, int ang, int hammerPOS) {
 
-  int pwr1 = lin + ang;
-  int pwr2 = lin - ang;
-  int hammerUs = map(hammerPOS, 0, 201, 5, 90);
+  pwr1 = lin + ang;
+  pwr2 = lin - ang;
+  hammerUs = map(hammerPOS, 0, 201, 5, 90);
   //delay(10);
   hammer.write(hammerUs);
   //Serial.println(hammerUs);

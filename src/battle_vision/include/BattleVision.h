@@ -98,5 +98,15 @@ private:
     cv::Ptr<cv::aruco::DetectorParameters> parameters;
     bool draw_markers = true;
     int camera        = 1;
+
+    //opencv text params
+    int font1 = cv::FONT_HERSHEY_SIMPLEX;
+    double fontScale = 1.0;
+    int thickness = 2;
+    int lineType = cv::LINE_AA; //anti-aliased line
+     cv::Point2f robot_detected_point = cv::Point2f(50, 50);
+     cv::Point2f angle_to_go_point = cv::Point2f(50, 250);
+
+     cv::Scalar textColour = cv::Scalar(100, 0, 0); //bgr
 };
 #endif //SAMPLE_PACKAGE_MYNODE_H
