@@ -59,7 +59,7 @@ private:
     int sockfd, newsockfd;
     socklen_t clilen;
     char buffer[256];
-    char readBuffer[256];
+    char readBuffer[1256];
     struct sockaddr_in serv_addr, cli_addr;
     int n; 
     float cartacc = 0.0;

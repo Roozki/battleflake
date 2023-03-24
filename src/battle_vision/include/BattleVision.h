@@ -7,6 +7,7 @@
 
 // STD Includes
 #include <iostream>
+#include <chrono>
 
 // ROS Includes
 //#include <std_msgs/String.h>
@@ -78,7 +79,9 @@ private:
      cv::Point2f m2;
      cv::Point2f click;
 
-     
+     void flashWarning(std::string msg, int x, int y, double size, int thick);
+
+
     std::vector<int> processMarkers(const cv::Mat& image);
 
     cv::Mat rosToMat(const sensor_msgs::Image::ConstPtr& image);
@@ -101,12 +104,21 @@ private:
 
     //opencv text params
     int font1 = cv::FONT_HERSHEY_SIMPLEX;
+    int font2 = cv::FONT_HERSHEY_DUPLEX;
+
     double fontScale = 1.0;
+
     int thickness = 2;
     int lineType = cv::LINE_AA; //anti-aliased line
-     cv::Point2f robot_detected_point = cv::Point2f(50, 50);
+     cv::Point2f robot_locked_point = cv::Point2f(70, 140);
      cv::Point2f angle_to_go_point = cv::Point2f(50, 250);
 
      cv::Scalar textColour = cv::Scalar(100, 0, 0); //bgr
+
+     //time stuff
+     int frameTimer = 0;
+     //int blink_interval_ms = 500; // Blink interval in milliseconds
+
+     int blink_interval = 5; //blink_interval_ms/1000/fps;
 };
 #endif //SAMPLE_PACKAGE_MYNODE_H

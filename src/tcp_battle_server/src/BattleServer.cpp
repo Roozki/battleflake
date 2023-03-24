@@ -243,7 +243,7 @@ void BattleServer::sendCmds(int robot1_Ly, int robot1_Rz, int hammer){
 
  void BattleServer::readRobot(){
   int datasize;
-  datasize = read(newsockfd,readBuffer,255);
+  datasize = read(newsockfd,readBuffer,256);
      if (datasize < 0) ROS_ERROR("ERROR reading from socket");
      ROS_INFO("Client says: %s\n",readBuffer);
 

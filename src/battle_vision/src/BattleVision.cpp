@@ -13,6 +13,7 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
     ros::NodeHandle nh;
     ros::NodeHandle private_nh("~");
     ros::Rate loop_rate(fps);
+    ros::Duration sleep_duration(2.0);
 
 
     // Setup image transport
@@ -80,6 +81,7 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
             ros::spinOnce();
 
             cv::waitKey(1000/fps);
+            frameTimer++;
             loop_rate.sleep();
   if (frame.empty())
          {
@@ -153,6 +155,9 @@ void BattleVision::sendCmd(){
 geometry_msgs::Twist cmd;
 if(robotTracked){
 
+    std::string temp("ROBOT LOCKED");
+    cv::putText(outputImage, temp, robot_locked_point, font2, 2.0, cv::Scalar(0, 200, 0), thickness, lineType, false);
+
 cv::Point2f currTraj(m2.x - m1.x, m2.y - m1.y); //current trajectory
 cv::Point2f desTraj(click.x - m1.x, click.y - m1.y); //desired traj
 
@@ -196,7 +201,13 @@ if (angle < 20){
 if(mag2 < 70){
     cmd.angular.z = 0;
     }
-}else{
+}else{ //if robot marker is not detected
+
+
+    std::string temp("ROBOT LOST");
+
+    flashWarning(temp, 400, 400, 3, 3);
+
     cmd.linear.x = 0;
     cmd.angular.z = 0;
 }
@@ -209,6 +220,18 @@ if (cmd.linear.x < -35){
 cmd_pubber.publish(cmd);
 
 }
+void BattleVision::flashWarning(std::string msg, int x, int y, double size, int thick){
+cv::Scalar pos(x, y);
+
+    if (frameTimer > blink_interval) {
+frameTimer = 0;
+    }
+
+if(frameTimer > blink_interval / 3){
+cv::putText(outputImage, msg, cv::Point2f(x, y), font2, 2.5, cv::Scalar(0, 0, 200), thick, lineType, false);
+}
+    }
+
 
 
 cv::Mat BattleVision::rosToMat(const sensor_msgs::Image::ConstPtr& image) {

@@ -54,10 +54,7 @@ void setup() {
   });
 
   client.onData([](void* arg, AsyncClient* c, void* data, size_t len) {
-    String sendBuffer_str = "R1(" + String(pwr1); + ",a" + String(pwr2) + ",b" + String(hammerUs) + ",c)\n";
-    char sendBuffer[sendBuffer_str.length() + 1];
-    sendBuffer_str.toCharArray(sendBuffer, sizeof(sendBuffer));
-    c->write(sendBuffer);
+    
     //Serial.print("Received data: ");
     // char* temp = data;
     //    Serial.println(temp);
@@ -76,6 +73,11 @@ void setup() {
     //Serial.println(hammerPOS);
     //Serial.println(linX);
     CMD(linX, angZ, hammerPOS);
+
+    String sendBuffer_str = "R1(" + String(pwr1) + ",a" + String(pwr2) + ",b" + String(hammerUs) + ",c)\n";
+    char sendBuffer[sendBuffer_str.length() + 1];
+    sendBuffer_str.toCharArray(sendBuffer, sendBuffer_str.length() + 1);
+    c->write(sendBuffer);
     //Serial.write((uint8_t*)data, len);
   });
 }
