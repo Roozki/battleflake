@@ -46,6 +46,7 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
         ROS_WARN(
         "I WILL ****NOT**** ATTEMPT TO DRAW DETECTED MARKERS");
     }
+    
 
     //Create a window
     VideoCapture cap;
@@ -115,15 +116,37 @@ std::vector<int> BattleVision::processMarkers(const cv::Mat& image) {
     image, dictionary, markerCorners, markerIds, parameters);
     if (draw_markers) {
         image.copyTo(outputImage);
-        if(markerCorners.size() == 1){
-            robotTracked = true;
-            BattleVision::m1 = (markerCorners[0][0] + markerCorners[0][1])/2;
-            BattleVision::m2 = (markerCorners[0][2] + markerCorners[0][3])/2;
-            cv::line(outputImage, BattleVision::m1, BattleVision::m2, cv::Scalar(0, 0, 255), 4);
-            cv::line(outputImage, BattleVision::m1, click, cv::Scalar(200, 100, 0), 4);
+        if(markerIds.size() > 0){
+            std::unordered_set<int> orginizedIds(markerIds.begin(), markerIds.end());
+            
+            if(orginizedIds.find(ROBOT_ID) != orginizedIds.end()){
+                int robot_index = std::distance(markerIds.begin(), std::find(markerIds.begin(), markerIds.end(), ROBOT_ID));   
+                robotTracked = true;
+                BattleVision::m1 = (markerCorners[robot_index][0] + markerCorners[robot_index][1])/2;
+                BattleVision::m2 = (markerCorners[robot_index][2] + markerCorners[robot_index][3])/2;
+                cv::Point2f robot_longitudinal_direction = m2 - m1;
+                cv::Point2f robot_lateral_direction = markerCorners[robot_index][2] - markerCorners[robot_index][3];
 
-        }else{
+                cv::Point2f front_robot = m1 + robot_longitudinal_direction*ROBOT_LONG_SCALE;
+                cv::Point2f right_robot = m1 + robot_lateral_direction*ROBOT_LAT_SCALE;
+                cv::Point2f left_robot = m1 - robot_lateral_direction*ROBOT_LAT_SCALE;
+
+                
+                //robot 'render'
+                cv::line(outputImage, BattleVision::m1, front_robot, cv::Scalar(0, 0, 200), 5);
+                cv::line(outputImage, BattleVision::m1, right_robot, cv::Scalar(100, 100, 0), 5);
+                cv::line(outputImage, BattleVision::m1, left_robot, cv::Scalar(100, 100, 0), 5);
+
+                //desired traj vector
+                cv::line(outputImage, BattleVision::m1, click, cv::Scalar(200, 100, 0), 4);
+
+            }else{
             robotTracked = false;
+            }
+        }else{
+            flashWarning("NO MARKERS DETECTED", 400, 350, 3, 3);
+            robotTracked = false;
+
         }
 
         cv::aruco::drawDetectedMarkers(outputImage, markerCorners, markerIds);
@@ -206,7 +229,7 @@ if(mag2 < 70){
 
     std::string temp("ROBOT LOST");
 
-    flashWarning(temp, 400, 400, 3, 3);
+    flashWarning(temp, 400, 450, 3, 3);
 
     cmd.linear.x = 0;
     cmd.angular.z = 0;

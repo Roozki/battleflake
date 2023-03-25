@@ -8,6 +8,7 @@
 // STD Includes
 #include <iostream>
 #include <chrono>
+#include <unordered_set>
 
 // ROS Includes
 //#include <std_msgs/String.h>
@@ -32,6 +33,11 @@
 #include<bb_msgs/bbVision2point.h>
 #include<bb_msgs/battleCmd.h>
 
+//definitions
+#define ROBOT_ID 0
+#define ENEMY_ID 1 2 3 4
+#define ROBOT_LONG_SCALE 4
+#define ROBOT_LAT_SCALE 3
 
 using namespace cv;
 class BattleVision {
