@@ -85,7 +85,8 @@ private:
      cv::Point2f m2;
      cv::Point2f click;
 
-     void flashWarning(std::string msg, int x, int y, double size, int thick);
+     //interval 0 for constant msg
+     void flashWarning(std::string msg, int x, int y, double size, int thick, cv::Scalar colour, int blink_interval, int cycle,  int* frameCLK); //colour is processed as bgr
 
 
     std::vector<int> processMarkers(const cv::Mat& image);
@@ -122,9 +123,20 @@ private:
      cv::Scalar textColour = cv::Scalar(100, 0, 0); //bgr
 
      //time stuff
-     int frameTimer = 0;
+     int frameCLK_1 = 0;
+     int frameCLK_2 = 0;
+     int frameCLK_3 = 0;
+
+
      //int blink_interval_ms = 500; // Blink interval in milliseconds
 
-     int blink_interval = 5; //blink_interval_ms/1000/fps;
+     //int blink_interval = 5; //blink_interval_ms/1000/fps;
+
+     //robot feedback
+          //weapon systems
+          int hammer_STATUS;
+          //drive systems
+          int slip;
+
 };
 #endif //SAMPLE_PACKAGE_MYNODE_H

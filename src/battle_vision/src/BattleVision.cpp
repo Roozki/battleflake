@@ -82,7 +82,10 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
             ros::spinOnce();
 
             cv::waitKey(1000/fps);
-            frameTimer++;
+            frameCLK_1++;
+            frameCLK_2++;            
+            //frameCLK_3++;
+
             loop_rate.sleep();
   if (frame.empty())
          {
@@ -136,6 +139,25 @@ std::vector<int> BattleVision::processMarkers(const cv::Mat& image) {
                 cv::line(outputImage, BattleVision::m1, front_robot, cv::Scalar(0, 0, 200), 5);
                 cv::line(outputImage, BattleVision::m1, right_robot, cv::Scalar(100, 100, 0), 5);
                 cv::line(outputImage, BattleVision::m1, left_robot, cv::Scalar(100, 100, 0), 5);
+                std::string hammer_msg = "HAMMER ";
+                cv::Scalar hamer_msg_colour;
+                switch (hammer_STATUS)
+                {
+                case 1:
+                    hammer_msg += "READY";
+                    hamer_msg_colour = cv::Scalar(0, 250, 0);
+                    break;
+                case 0:
+                    hammer_msg += "STANDBY";
+                    hamer_msg_colour = cv::Scalar(255, 255, 0);
+                    break;
+                default:
+                    hammer_msg += "READY";
+                    hamer_msg_colour = cv::Scalar(0, 250, 0);
+                    break;
+                }
+                flashWarning(hammer_msg, 200, 600, 2, 2, cv::Scalar(0, 200, 200), 5, 3, &frameCLK_1);
+
 
                 //desired traj vector
                 cv::line(outputImage, BattleVision::m1, click, cv::Scalar(200, 100, 0), 4);
@@ -144,7 +166,7 @@ std::vector<int> BattleVision::processMarkers(const cv::Mat& image) {
             robotTracked = false;
             }
         }else{
-            flashWarning("NO MARKERS DETECTED", 400, 350, 3, 3);
+            flashWarning("NO MARKERS DETECTED", 400, 350, 3, 3, cv::Scalar(0, 0, 200), 10, 2, &frameCLK_1);
             robotTracked = false;
 
         }
@@ -171,6 +193,7 @@ void BattleVision::processClick(int x, int y){
     click = tmp;
 
 }
+
 
 void BattleVision::sendCmd(){
 //TODO: sophisticated PID
@@ -219,7 +242,7 @@ if (angle < 20){
     cmd.angular.z = 0;
 
 }else{
-    cmd.linear.x = 0;
+    cmd.linear.x = 0; 
 }
 if(mag2 < 70){
     cmd.angular.z = 0;
@@ -229,7 +252,7 @@ if(mag2 < 70){
 
     std::string temp("ROBOT LOST");
 
-    flashWarning(temp, 400, 450, 3, 3);
+    flashWarning(temp, 400, 450, 3, 3, cv::Scalar(0, 0, 200), 5, 3, &frameCLK_2);
 
     cmd.linear.x = 0;
     cmd.angular.z = 0;
@@ -243,17 +266,19 @@ if (cmd.linear.x < -35){
 cmd_pubber.publish(cmd);
 
 }
-void BattleVision::flashWarning(std::string msg, int x, int y, double size, int thick){
+void BattleVision::flashWarning(std::string msg, int x, int y, double size, int thick, cv::Scalar colour, int blink_interval, int cycle, int* frameCLK){
 cv::Scalar pos(x, y);
 
-    if (frameTimer > blink_interval) {
-frameTimer = 0;
+    if (*frameCLK > blink_interval) {
+*frameCLK = 0;
     }
 
-if(frameTimer > blink_interval / 3){
-cv::putText(outputImage, msg, cv::Point2f(x, y), font2, 2.5, cv::Scalar(0, 0, 200), thick, lineType, false);
+if(*frameCLK > blink_interval / cycle){
+cv::putText(outputImage, msg, cv::Point2f(x, y), font2, 2.5, colour, thick, lineType, false);
 }
     }
+
+
 
 
 
