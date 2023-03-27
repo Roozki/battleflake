@@ -1,3 +1,5 @@
+//author: rowan zawadzki
+
 #include "battle_TCP.h"
 //#include "std/string.h"
 
@@ -5,29 +7,78 @@
 
 /*
 TODO:
-Get values for servo working
-left right triggers for hammer
-
 
 
 */
 
-int pos;
+//int pos;
+
+
+void IRAM_ATTR encoder_L_isr() {
+  int A_val = digitalRead(MOT_ENC_A_PIN_L);
+  int B_val = digitalRead(MOT_ENC_B_PIN_L);
+
+  if (A_val == ENC_L_A_prev && B_val == ENC_L_B_prev) {
+    return;
+  }
+
+  if (A_val != B_val) {
+    ENC_L_A_prev = A_val;
+    ENC_L_B_prev = B_val;
+  } else {
+    if (A_val == ENC_L_A_prev) {
+      encoder_L_position++;
+    } else {
+      encoder_L_position--;
+    }
+  }
+}
+
+void IRAM_ATTR encoder_R_isr() {
+  int A_val = digitalRead(MOT_ENC_A_PIN_R);
+  int B_val = digitalRead(MOT_ENC_B_PIN_R);
+
+  if (A_val == ENC_R_A_prev && B_val == ENC_R_B_prev) {
+    return;
+  }
+
+  if (A_val != B_val) {
+    ENC_R_A_prev = A_val;
+    ENC_R_B_prev = B_val;
+  } else {
+    if (A_val == ENC_R_A_prev) {
+      encoder_R_position++;
+    } else {
+      encoder_R_position--;
+    }
+  }
+}
 
 void setup() {
   Serial.begin(9600);
 
   pinMode(HAMMER_PIN, OUTPUT);
   hammer.attach(HAMMER_PIN, 500, 2500);
-    hammer.setPeriodHertz(100);  // standard 50 hz servo
+  hammer.setPeriodHertz(100);  // standard 50 hz servo
 
+  //encoder pin modes
+  pinMode(MOT_ENC_A_PIN_L, INPUT_PULLUP);
+  pinMode(MOT_ENC_B_PIN_L, INPUT_PULLUP);
 
+  //motor pin modes
   pinMode(MOT_PIN_L_1, OUTPUT);
   pinMode(MOT_PIN_L_2, OUTPUT);
-  //pinMode(MOT_PIN_L_PWM, OUTPUT);
   pinMode(MOT_PIN_R_1, OUTPUT);
   pinMode(MOT_PIN_R_2, OUTPUT);
   pinMode(MOT_PIN_R_PWM, OUTPUT);
+
+  //encoder ISRs
+  attachInterrupt(digitalPinToInterrupt(MOT_ENC_A_PIN_L), encoder_L_isr, CHANGE);
+ attachInterrupt(digitalPinToInterrupt(MOT_ENC_B_PIN_L), encoder_L_isr, CHANGE);
+
+  attachInterrupt(digitalPinToInterrupt(MOT_ENC_A_PIN_R), encoder_R_isr, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(MOT_ENC_B_PIN_R), encoder_R_isr, CHANGE);
+
 
   WiFi.begin(ssid, pass);
 
@@ -41,7 +92,7 @@ void setup() {
   client.onConnect([](void* arg, AsyncClient* c) {
     Serial.println("Connected to server");
     //Send data to the server
-    c->write("Hello, server!");
+    c->write("I'M ROBOT_1, HELLO!");
   });
 
   client.onError([](void* arg, AsyncClient* c, int8_t error) {
@@ -54,7 +105,6 @@ void setup() {
   });
 
   client.onData([](void* arg, AsyncClient* c, void* data, size_t len) {
-    
     //Serial.print("Received data: ");
     // char* temp = data;
     //    Serial.println(temp);
@@ -68,27 +118,32 @@ void setup() {
     int angZ = (dat.substring(indexLY + 1, indexRZ)).toInt();
     int indexHAM = dat.indexOf("c");
     int hammerPOS = (dat.substring(indexRZ + 1, indexHAM).toInt());
+  
 
     //Serial.println(angZ);
     //Serial.println(hammerPOS);
     //Serial.println(linX);
     CMD(linX, angZ, hammerPOS);
 
-    String sendBuffer_str = "R1(" + String(pwr1) + ",a" + String(pwr2) + ",b" + String(hammerUs) + ",c)\n";
-    char sendBuffer[sendBuffer_str.length() + 1];
-    sendBuffer_str.toCharArray(sendBuffer, sendBuffer_str.length() + 1);
-    c->write(sendBuffer);
+   String sendBuffer_str = "R1(" + String(pwr1) + ",a" + String(pwr2) + ",b" + String(hammerUs) + ",c" + String(encoder_L_position) + ",d" + String(encoder_R_position) + ",e)\n";
+   char sendBuffer[sendBuffer_str.length() + 1];
+   sendBuffer_str.toCharArray(sendBuffer, sendBuffer_str.length() + 1);
+   c->write(sendBuffer);
     //Serial.write((uint8_t*)data, len);
   });
 }
 
 void loop() {
 
+  //Serial.println(encoder_L_position);
+  //Serial.println(digitalRead(MOT_ENC_B_PIN_L));
   // Check for any errors or disconnections
+
   if (!connect_flag) {
     Serial.println("Lost connection to server");
     client.connect("192.168.1.100", 9000);
-    delay(1000);
+
+    //delay(1000);
     connect_flag = true;
   }
 }
@@ -104,21 +159,21 @@ void CMD(int lin, int ang, int hammerPOS) {
   //Serial.println(hammerUs);
 
 
-  if (pwr1 > 0){
+  if (pwr1 > 0) {
     digitalWrite(MOT_PIN_L_1, HIGH);
     digitalWrite(MOT_PIN_L_2, LOW);
-  }else{
+  } else {
     digitalWrite(MOT_PIN_L_1, LOW);
     digitalWrite(MOT_PIN_L_2, HIGH);
   }
-  analogWrite(MOT_PIN_L_PWM, abs(pwr1*4));
+  analogWrite(MOT_PIN_L_PWM, abs(pwr1 * 4));
 
   if (pwr2 > 0) {
-      digitalWrite(MOT_PIN_R_1, HIGH);
-      digitalWrite(MOT_PIN_R_2, LOW);
-    }else{
-      digitalWrite(MOT_PIN_R_1, LOW);
-      digitalWrite(MOT_PIN_R_2, HIGH);
+    digitalWrite(MOT_PIN_R_1, HIGH);
+    digitalWrite(MOT_PIN_R_2, LOW);
+  } else {
+    digitalWrite(MOT_PIN_R_1, LOW);
+    digitalWrite(MOT_PIN_R_2, HIGH);
   }
-   analogWrite(MOT_PIN_R_PWM, abs(pwr2*4));
+  analogWrite(MOT_PIN_R_PWM, abs(pwr2 * 4));
 }

@@ -50,7 +50,6 @@ private:
     void sendCmds(int robot1_Ly, int robot1_Rz, int hammerPOS);
     void MecaCmds(float lx, float ly, float lz, float rx, float ry, float rz, float cartacc, int activate, int home);
     void setup(int mode);
-   // void setupJoy();
     void readRobot();
     float dependentAxis(float MasterAxis, float SlaveAxis, int mode); //i think the naming convention 'master' and 'slave' should change as its potentially harmful language, but it be what it be for now
 

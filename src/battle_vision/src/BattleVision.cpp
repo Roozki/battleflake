@@ -38,15 +38,14 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
 
     // image detection publisher
     bounder = it.advertise("bounding_boxes", 5);
+     cv::namedWindow("Battle Vision", cv::WINDOW_AUTOSIZE);
+     cv::setMouseCallback("Battle Vision", &BattleVision::clickCallbackHandler, this);
+    Size targetResolution(1920, 1080);
+
 
     ROS_INFO("initiation appears successfull.");
-    if (draw_markers) {
-        ROS_INFO("I WILL ATTEMPT TO DRAW DETECTED MARKERS");
-    } else {
-        ROS_WARN(
-        "I WILL ****NOT**** ATTEMPT TO DRAW DETECTED MARKERS");
-    }
-    
+   
+
 
     //Create a window
     VideoCapture cap;
@@ -64,12 +63,9 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
     
     //double fps = cap.get(CAP_PROP_FPS);
     ROS_WARN("%f", fps);
-     cv::namedWindow("Battle Eye", 0);
-     cv::setMouseCallback("Battle Eye", &BattleVision::clickCallbackHandler, this);
-
-      Mat frame;
-      Size targetResolution(1920, 1080);
-
+    
+      cv::Mat frame;
+     
     
     cap.set(CAP_PROP_FPS, BattleVision::fps);
 
@@ -84,7 +80,6 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
             cv::waitKey(1000/fps);
             frameCLK_1++;
             frameCLK_2++;            
-            //frameCLK_3++;
 
             loop_rate.sleep();
   if (frame.empty())
@@ -97,6 +92,7 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
     }
 
 }
+
 
 
 void BattleVision::frameCallback(const sensor_msgs::Image::ConstPtr& msg) {
@@ -117,8 +113,11 @@ std::vector<int> BattleVision::processMarkers(const cv::Mat& image) {
 
     cv::aruco::detectMarkers(
     image, dictionary, markerCorners, markerIds, parameters);
-    if (draw_markers) {
         image.copyTo(outputImage);
+        if(!started){
+        dramaticSetup(); //fancy startup just for fun
+        started = true;
+        }
         if(markerIds.size() > 0){
             std::unordered_set<int> orginizedIds(markerIds.begin(), markerIds.end());
             
@@ -156,7 +155,7 @@ std::vector<int> BattleVision::processMarkers(const cv::Mat& image) {
                     hamer_msg_colour = cv::Scalar(0, 250, 0);
                     break;
                 }
-                flashWarning(hammer_msg, 200, 600, 2, 2, cv::Scalar(0, 200, 200), 5, 3, &frameCLK_1);
+                flashWarning(hammer_msg, 50, 600, 1, 1, cv::Scalar(0, 200, 200), 5, 3, &frameCLK_2);
 
 
                 //desired traj vector
@@ -166,7 +165,7 @@ std::vector<int> BattleVision::processMarkers(const cv::Mat& image) {
             robotTracked = false;
             }
         }else{
-            flashWarning("NO MARKERS DETECTED", 400, 350, 3, 3, cv::Scalar(0, 0, 200), 10, 2, &frameCLK_1);
+            flashWarning("NO MARKERS DETECTED", 400, 300, 3, 2, cv::Scalar(0, 100, 200), 15, 2, &frameCLK_1);
             robotTracked = false;
 
         }
@@ -179,9 +178,9 @@ std::vector<int> BattleVision::processMarkers(const cv::Mat& image) {
 
     sendCmd();
 
-    imshow("Battle Eye", outputImage);
+    imshow("Battle Vision", outputImage);
 
-    }
+    
 
     return markerIds;
 }
@@ -275,6 +274,7 @@ cv::Scalar pos(x, y);
 
 if(*frameCLK > blink_interval / cycle){
 cv::putText(outputImage, msg, cv::Point2f(x, y), font2, 2.5, colour, thick, lineType, false);
+
 }
     }
 
@@ -287,5 +287,42 @@ cv::Mat BattleVision::rosToMat(const sensor_msgs::Image::ConstPtr& image) {
     image_ptr = cv_bridge::toCvCopy(image, image->encoding);
     return image_ptr->image;
 }
+
+ void BattleVision::dramaticSetup(){//fancy startup just for fun
+
+int resolution = 1000;
+  for (int i = 0; i <= resolution; i++) {
+    outputImage.setTo(cv::Scalar(0, 0, 0));
+    double progress = static_cast<double>(i) / resolution;
+    draw_loading_bar(outputImage, progress);
+    flashWarning("BATTLEBOT SYSTEMS START", window_width / 2, 400, 4, 3, cv::Scalar(200, 200, 200), 2, 3, &frameCLK_3);
+
+
+    cv::imshow("Battle Vision", outputImage);
+    cv::waitKey(5);
+  }
+
+  outputImage.setTo(cv::Scalar(0, 0, 0));
+  cv::putText(outputImage, "BATTLEBOT READY", cv::Point(window_width / 4, window_height / 2), cv::FONT_HERSHEY_SIMPLEX, 2, cv::Scalar(255, 255, 255), 2);
+  cv::imshow("Battle Vision", outputImage);
+  cv::waitKey(2000);
+
+ }
+
+void BattleVision::draw_loading_bar(cv::Mat &output, double progress) {
+int bar_width = 1000;
+int bar_height = 10;
+int bar_x = (window_width - bar_width) /2;
+int bar_y = (window_height - bar_height) - 200;
+
+//float
+cv::Rect outer_rect(bar_x, bar_y, bar_width, bar_height);
+cv::rectangle(output, outer_rect, cv::Scalar(255, 255, 255), 2);
+
+int inner_width = static_cast<int>(bar_width * progress);
+cv::Rect inner_rect(bar_x + 2, bar_y + 2, inner_width - 4, bar_height - 4);
+cv::rectangle(output, inner_rect, cv::Scalar(255, 255, 255), -1);
+}
+
 
  

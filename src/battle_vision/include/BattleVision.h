@@ -34,8 +34,8 @@
 #include<bb_msgs/battleCmd.h>
 
 //definitions
-#define ROBOT_ID 0
-#define ENEMY_ID 1 2 3 4
+#define ROBOT_ID 2
+#define ENEMY_ID 1 0 3 4
 #define ROBOT_LONG_SCALE 4
 #define ROBOT_LAT_SCALE 3
 
@@ -87,7 +87,7 @@ private:
 
      //interval 0 for constant msg
      void flashWarning(std::string msg, int x, int y, double size, int thick, cv::Scalar colour, int blink_interval, int cycle,  int* frameCLK); //colour is processed as bgr
-
+     void draw_loading_bar(cv::Mat &output, double progress);
 
     std::vector<int> processMarkers(const cv::Mat& image);
 
@@ -100,14 +100,19 @@ private:
 
     void processClick(int x, int y);
     void sendCmd();
+    void dramaticSetup(); //fancy startup just for fun
 
 
-     cv::Mat outputImage;
+     cv::Mat outputImage;//(window_height, window_width, CV_8UC3, cv::Scalar(0, 0, 0));
+
 
     cv::Ptr<cv::aruco::Dictionary> dictionary;
     cv::Ptr<cv::aruco::DetectorParameters> parameters;
     bool draw_markers = true;
     int camera        = 1;
+
+     const int window_width = 1920;
+     const int window_height = 1080;
 
     //opencv text params
     int font1 = cv::FONT_HERSHEY_SIMPLEX;
@@ -134,9 +139,12 @@ private:
 
      //robot feedback
           //weapon systems
-          int hammer_STATUS;
+          int hammer_STATUS = -1;
           //drive systems
           int slip;
+     
+     //flags
+     bool started = false;
 
 };
 #endif //SAMPLE_PACKAGE_MYNODE_H

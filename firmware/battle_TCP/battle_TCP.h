@@ -9,12 +9,37 @@
 #define MOT_PIN_L_2 5
 #define MOT_PIN_L_PWM 17
 
-#define HAMMER_PIN 0
+#define HAMMER_PIN 2
 
 //right drive motor
 #define MOT_PIN_R_1 23
 #define MOT_PIN_R_2 22
 #define MOT_PIN_R_PWM 19
+
+//encoders for wheel odometry
+#define MOT_ENC_A_PIN_L 32
+#define MOT_ENC_B_PIN_L 33
+#define MOT_ENC_A_PIN_R 27
+#define MOT_ENC_B_PIN_R 26
+
+#define ENC_STEPS_PER_SHAFT_ROTATION 1856 //64 per revolution, with 30:1 gear ratio
+
+volatile long encoder_L_position = 0;
+volatile bool ENC_L_A_prev = false;
+volatile bool ENC_L_B_prev = false;
+
+volatile long encoder_R_position = 0;
+volatile bool ENC_R_A_prev = false;
+volatile bool ENC_R_B_prev = false;
+
+
+
+
+
+//Interupt Service Routines
+void IRAM_ATTR encoder_L_isr(); //IRAM_ATTR to isolate memory in the more rapidly accessable IRAM
+void IRAM_ATTR encoder_R_isr();
+
 
 Servo hammer;
 
