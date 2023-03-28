@@ -29,7 +29,7 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
     shutter  = it.subscribe(
     topic_to_subscribe_to, queue_size, &BattleVision::frameCallback, this);
 
-     std::string topic = private_nh.resolveName("identified");
+    std::string topic = private_nh.resolveName("identified");
     queue_size        = 10;
 
    // point_pub = private_nh.advertise<bb_msgs::bbVision2point>("battlepoint", queue_size);
@@ -38,14 +38,11 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
 
     // image detection publisher
     bounder = it.advertise("bounding_boxes", 5);
-     cv::namedWindow("Battle Vision", cv::WINDOW_AUTOSIZE);
-     cv::setMouseCallback("Battle Vision", &BattleVision::clickCallbackHandler, this);
-    Size targetResolution(1920, 1080);
-
+    cv::namedWindow("Battle Vision", cv::WINDOW_AUTOSIZE);
+    cv::setMouseCallback("Battle Vision", &BattleVision::clickCallbackHandler, this);
+    //Size targetResolution(1920, 1080);
 
     ROS_INFO("initiation appears successfull.");
-   
-
 
     //Create a window
     VideoCapture cap;
@@ -64,10 +61,11 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
     //double fps = cap.get(CAP_PROP_FPS);
     ROS_WARN("%f", fps);
     
-      cv::Mat frame;
+    cv::Mat frame;
      
     
     cap.set(CAP_PROP_FPS, BattleVision::fps);
+
 
     while (ros::ok())
     {
@@ -85,6 +83,9 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
   if (frame.empty())
          {
              ROS_WARN("Failed to read frame from camera");
+                    
+            
+
          }else{
             processMarkers(frame);
          }
@@ -266,14 +267,16 @@ cmd_pubber.publish(cmd);
 
 }
 void BattleVision::flashWarning(std::string msg, int x, int y, double size, int thick, cv::Scalar colour, int blink_interval, int cycle, int* frameCLK){
-cv::Scalar pos(x, y);
-
+if (blink_interval == 1){
+    cv::putText(outputImage, msg, cv::Point2f(x, y), font2, size, colour, thick, lineType, false);
+    return;
+}
     if (*frameCLK > blink_interval) {
 *frameCLK = 0;
     }
 
 if(*frameCLK > blink_interval / cycle){
-cv::putText(outputImage, msg, cv::Point2f(x, y), font2, 2.5, colour, thick, lineType, false);
+cv::putText(outputImage, msg, cv::Point2f(x, y), font2, size, colour, thick, lineType, false);
 
 }
     }
@@ -290,22 +293,81 @@ cv::Mat BattleVision::rosToMat(const sensor_msgs::Image::ConstPtr& image) {
 
  void BattleVision::dramaticSetup(){//fancy startup just for fun
 
-int resolution = 1000;
-  for (int i = 0; i <= resolution; i++) {
+int res = 1500;
+  for (int i = 0; i <= res; i++) {
     outputImage.setTo(cv::Scalar(0, 0, 0));
-    double progress = static_cast<double>(i) / resolution;
+    double progress = static_cast<double>(i) / res;
     draw_loading_bar(outputImage, progress);
-    flashWarning("BATTLEBOT SYSTEMS START", window_width / 2, 400, 4, 3, cv::Scalar(200, 200, 200), 2, 3, &frameCLK_3);
+    flashWarning("SYSTEMS START", window_width / 6, 200, 4, 2, cv::Scalar(200, 200, 200), 100, 3, &frameCLK_3);
+    frameCLK_3++;
+    frameCLK_4++;
+     if(i > res/100){
+        cv::putText(outputImage, "ROS core:", cv::Point2f(50, 350), font2, 2, cv::Scalar(200, 200, 200), 1, lineType, false);
+        cv::putText(outputImage, "network:", cv::Point2f(50, 410), font2, 2, cv::Scalar(200, 200, 200), 1, lineType, false);
+        cv::putText(outputImage, "weapon systems:", cv::Point2f(50, 470), font2, 2, cv::Scalar(200, 200, 200), 1, lineType, false);
 
+
+    }
+    if(i > res/100  && i < res / 5){
+        flashWarning("STANDBY", 1000, 350, 2, 2, cv::Scalar(0, 150, 150), 50, 4, &frameCLK_4);
+        flashWarning("ROS ERROR", 1000, 410, 2, 2, cv::Scalar(0, 0, 100), 1, 100, &frameCLK_4);
+        flashWarning("ROS ERROR", 1000, 470, 2, 2, cv::Scalar(0, 0, 100), 1, 100, &frameCLK_4);
+
+        //flashWarning("NETWORK ERROR", 610 + 45, 410, 2, 2, cv::Scalar(0, 0, 100), 1, 100, &frameCLK_4);
+
+    }
+    if(i > res / 5){
+        cv::putText(outputImage, "running", cv::Point2f(1000, 350), font2, 2, cv::Scalar(0, 200, 0), 1, lineType, false);
+
+    }
+    if(i > res/ 5  && i < 3*res / 5){
+        flashWarning("STANDBY", 1000, 410, 2, 2, cv::Scalar(0, 150, 150), 50, 4, &frameCLK_4);
+        flashWarning("NETWORK ERROR", 1000, 470, 2, 2, cv::Scalar(0, 0, 100), 1, 100, &frameCLK_4);
+
+       // flashWarning("", 610 + 45, 410, 2, 2, cv::Scalar(0, 0, 100), 1, 100, &frameCLK_4);
+
+    }
+    if(i > 3*res/ 5 ){
+        cv::putText(outputImage, "online", cv::Point2f(1000, 410), font2, 2, cv::Scalar(0, 200, 0), 1, lineType, false);
+    }
+      if(i > 3*res/ 5  && i < 4*res / 5){
+        flashWarning("STANDBY", 1000, 470, 2, 2, cv::Scalar(0, 150, 150), 50, 4, &frameCLK_4);
+
+       // flashWarning("", 610 + 45, 410, 2, 2, cv::Scalar(0, 0, 100), 1, 100, &frameCLK_4);
+
+    }
+    if(i > 4*res/ 5 ){
+        cv::putText(outputImage, "online", cv::Point2f(1000, 470), font2, 2, cv::Scalar(0, 200, 0), 1, lineType, false);
+    }
+
+
+
+
+
+   
+    
 
     cv::imshow("Battle Vision", outputImage);
     cv::waitKey(5);
   }
-
-  outputImage.setTo(cv::Scalar(0, 0, 0));
-  cv::putText(outputImage, "BATTLEBOT READY", cv::Point(window_width / 4, window_height / 2), cv::FONT_HERSHEY_SIMPLEX, 2, cv::Scalar(255, 255, 255), 2);
+    outputImage.setTo(cv::Scalar(0, 0, 0));
+  cv::putText(outputImage, "INITIATION SUCCESS", cv::Point(window_width / 4, window_height / 2), cv::FONT_HERSHEY_SIMPLEX, 2, cv::Scalar(100, 200, 100), 2);
   cv::imshow("Battle Vision", outputImage);
-  cv::waitKey(2000);
+  cv::waitKey(1000);
+  outputImage.setTo(cv::Scalar(0, 0, 0));
+  cv::imshow("Battle Vision", outputImage);
+  cv::waitKey(500);
+  cv::putText(outputImage, "ALL SYSTEMS OPERATIONAL", cv::Point(window_width / 4, window_height / 2), cv::FONT_HERSHEY_SIMPLEX, 2, cv::Scalar(255, 255, 255), 2);
+  cv::imshow("Battle Vision", outputImage);
+  cv::waitKey(1000);
+  outputImage.setTo(cv::Scalar(0, 0, 0));
+  cv::imshow("Battle Vision", outputImage);
+  cv::waitKey(500);
+  cv::putText(outputImage, "battlebot ready", cv::Point(window_width / 4, window_height / 2), cv::FONT_HERSHEY_SIMPLEX, 2, cv::Scalar(255, 255, 255), 2);
+  cv::imshow("Battle Vision", outputImage);
+  cv::waitKey(1500);
+
+
 
  }
 

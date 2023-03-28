@@ -34,7 +34,7 @@
 #include<bb_msgs/battleCmd.h>
 
 //definitions
-#define ROBOT_ID 2
+#define ROBOT_ID 5
 #define ENEMY_ID 1 0 3 4
 #define ROBOT_LONG_SCALE 4
 #define ROBOT_LAT_SCALE 3
@@ -131,7 +131,13 @@ private:
      int frameCLK_1 = 0;
      int frameCLK_2 = 0;
      int frameCLK_3 = 0;
-
+     int frameCLK_4 = 0;
+     int frameCLK_5 = 0;
+     int frameCLK_6 = 0;
+     int frameCLK_7 = 0;
+     int frameCLK_8 = 0;
+     int frameCLK_9 = 0;
+     int frameCLK_10 = 0;
 
      //int blink_interval_ms = 500; // Blink interval in milliseconds
 
