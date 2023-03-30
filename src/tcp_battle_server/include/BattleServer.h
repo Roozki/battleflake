@@ -15,6 +15,7 @@
 #include <geometry_msgs/Twist.h>
 //#include <keyboard_publisher/KeyEvent.h>
 #include <bb_msgs/battleCmd.h>
+#include<bb_msgs/robotStatus.h>
 #include <cstring>
 
 //network TCP stuff
@@ -53,6 +54,7 @@ private:
     void readRobot();
     float dependentAxis(float MasterAxis, float SlaveAxis, int mode); //i think the naming convention 'master' and 'slave' should change as its potentially harmful language, but it be what it be for now
 
+
     //void 
 
     int sockfd, newsockfd;
@@ -75,7 +77,7 @@ private:
     ros::Subscriber joy_sub;
     ros::Subscriber vision_sub;
 
-    ros::Publisher cmd_pub;
+    ros::Publisher network_status_pub;
     sensor_msgs::Joy joy;
     bb_msgs::battleCmd cmd;
 

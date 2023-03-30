@@ -30,11 +30,11 @@
 #include <sensor_msgs/image_encodings.h>
 
 //bb includes
-#include<bb_msgs/bbVision2point.h>
+#include<bb_msgs/robotStatus.h>
 #include<bb_msgs/battleCmd.h>
 
 //definitions
-#define ROBOT_ID 5
+#define ROBOT_ID 2
 #define ENEMY_ID 1 0 3 4
 #define ROBOT_LONG_SCALE 4
 #define ROBOT_LAT_SCALE 3
@@ -84,6 +84,8 @@ private:
      cv::Point2f m1;
      cv::Point2f m2;
      cv::Point2f click;
+     cv::Point2f hammerHitPoint;
+     cv::Point2f pivot;
 
      //interval 0 for constant msg
      void flashWarning(std::string msg, int x, int y, double size, int thick, cv::Scalar colour, int blink_interval, int cycle,  int* frameCLK); //colour is processed as bgr
@@ -150,7 +152,7 @@ private:
           int slip;
      
      //flags
-     bool started = false;
+     bool started = true;
 
 };
 #endif //SAMPLE_PACKAGE_MYNODE_H

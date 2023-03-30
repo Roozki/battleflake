@@ -3,17 +3,6 @@
 #include "battle_TCP.h"
 //#include "std/string.h"
 
-
-
-/*
-TODO:
-
-
-*/
-
-//int pos;
-
-
 void IRAM_ATTR encoder_L_isr() {
   int A_val = digitalRead(MOT_ENC_A_PIN_L);
   int B_val = digitalRead(MOT_ENC_B_PIN_L);
@@ -64,17 +53,20 @@ void setup() {
   //encoder pin modes
   pinMode(MOT_ENC_A_PIN_L, INPUT_PULLUP);
   pinMode(MOT_ENC_B_PIN_L, INPUT_PULLUP);
+  pinMode(MOT_ENC_A_PIN_R, INPUT_PULLUP);
+  pinMode(MOT_ENC_B_PIN_R, INPUT_PULLUP);
 
   //motor pin modes
   pinMode(MOT_PIN_L_1, OUTPUT);
   pinMode(MOT_PIN_L_2, OUTPUT);
+  pinMode(MOT_PIN_R_PWM, OUTPUT);
   pinMode(MOT_PIN_R_1, OUTPUT);
   pinMode(MOT_PIN_R_2, OUTPUT);
   pinMode(MOT_PIN_R_PWM, OUTPUT);
 
   //encoder ISRs
   attachInterrupt(digitalPinToInterrupt(MOT_ENC_A_PIN_L), encoder_L_isr, CHANGE);
- attachInterrupt(digitalPinToInterrupt(MOT_ENC_B_PIN_L), encoder_L_isr, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(MOT_ENC_B_PIN_L), encoder_L_isr, CHANGE);
 
   attachInterrupt(digitalPinToInterrupt(MOT_ENC_A_PIN_R), encoder_R_isr, CHANGE);
   attachInterrupt(digitalPinToInterrupt(MOT_ENC_B_PIN_R), encoder_R_isr, CHANGE);

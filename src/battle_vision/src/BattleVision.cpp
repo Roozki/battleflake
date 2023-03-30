@@ -221,21 +221,23 @@ float cross = currTraj.x * desTraj.y - currTraj.y * desTraj.x;
 
 if (cross > 0){
 std::string wee("angle is: ");
-wee += std::to_string(angle);
+wee += std::to_string(-angle);
     cv::putText(outputImage, wee, angle_to_go_point, font1, fontScale, cv::Scalar(0, 100, 0), thickness, lineType, false);
-    cmd.angular.z = -40;
+    cmd.angular.z = 30;
 }else if (cross < 0){
 std::string wee("angle is: ");
-wee += std::to_string(-angle);
+wee += std::to_string(angle);
     cv::putText(outputImage, wee, angle_to_go_point, font1, fontScale, cv::Scalar(110, 0, 0), thickness, lineType, false);
 
-    cmd.angular.z = 40;
+    cmd.angular.z = -30;
 
 }
 
-if (angle < 20){
-    if(mag2 > 50){
-    cmd.linear.x = -35;
+if (angle < 15){
+    if(mag2 > 500){
+    cmd.linear.x = 40;
+    }else if(mag2 > 100){
+    cmd.linear.x = 30;
     }else{
     cmd.linear.x = 0;
     }
@@ -244,9 +246,7 @@ if (angle < 20){
 }else{
     cmd.linear.x = 0; 
 }
-if(mag2 < 70){
-    cmd.angular.z = 0;
-    }
+
 }else{ //if robot marker is not detected
 
 
@@ -259,8 +259,8 @@ if(mag2 < 70){
 }
 
 
-if (cmd.linear.x < -35){
-    cmd.linear.x = -35;
+if (cmd.linear.x > 40){
+    cmd.linear.x = 40;
 }
 
 cmd_pubber.publish(cmd);
@@ -340,13 +340,6 @@ int res = 1500;
         cv::putText(outputImage, "online", cv::Point2f(1000, 470), font2, 2, cv::Scalar(0, 200, 0), 1, lineType, false);
     }
 
-
-
-
-
-   
-    
-
     cv::imshow("Battle Vision", outputImage);
     cv::waitKey(5);
   }
@@ -363,7 +356,7 @@ int res = 1500;
   outputImage.setTo(cv::Scalar(0, 0, 0));
   cv::imshow("Battle Vision", outputImage);
   cv::waitKey(500);
-  cv::putText(outputImage, "battlebot ready", cv::Point(window_width / 4, window_height / 2), cv::FONT_HERSHEY_SIMPLEX, 2, cv::Scalar(255, 255, 255), 2);
+  cv::putText(outputImage, "OPENING CAMERA FEED...", cv::Point(window_width / 4, window_height / 2), cv::FONT_HERSHEY_SIMPLEX, 2, cv::Scalar(255, 255, 255), 2);
   cv::imshow("Battle Vision", outputImage);
   cv::waitKey(1500);
 

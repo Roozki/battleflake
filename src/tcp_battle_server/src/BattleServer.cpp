@@ -7,7 +7,7 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
     // Setup NodeHandles
     ros::init(argc, argv, node_name);
     ros::NodeHandle nh;
-    ros::NodeHandle private_nh("~");
+    //ros::NodeHandle private_nh("~");
 
     setup(vision_mode);
     // Obtains character from the parameter server (or launch file), sets '!' as default
@@ -26,9 +26,8 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
     
 
     // Setup Publisher(s)
-    // std::string topic = private_nh.resolveName("robot_1_CMD");
-    // queue_size        = 1;
-    // cmd_pub = private_nh.advertise<bb_msgs::battleCmd>(topic, queue_size);
+     std::string status_topic = "robot_1_STATUS";
+     network_status_pub = nh.advertise<bb_msgs::robotStatus>(status_topic, 1);
 
 
  //int status, client_fd;
