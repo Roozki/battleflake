@@ -112,8 +112,8 @@ std::vector<int> BattleVision::processMarkers(const cv::Mat& image) {
    
 
 
-    cv::aruco::detectMarkers(
-    image, dictionary, markerCorners, markerIds, parameters);
+    cv::aruco::detectMarkers(image, dictionary, markerCorners, markerIds, parameters);
+
         image.copyTo(outputImage);
         if(!started){
         dramaticSetup(); //fancy startup just for fun

@@ -21,6 +21,7 @@ add_message_files(
     FILES battleCmd.msg
     bbVision2point.msg
     robotStatus.msg
+    networkStatus.msg
 )
 
 ## Generate added messages and services with any dependencies listed here

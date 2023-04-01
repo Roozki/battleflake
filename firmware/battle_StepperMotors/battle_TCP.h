@@ -7,16 +7,14 @@
 #include <sstream>
 #include <ESP32Servo.h>
 //left drive motor
-#define MOT_PIN_L_1 5
-#define MOT_PIN_L_2 18
-#define MOT_PIN_L_PWM 17
+#define MOT_PIN_L_PUL 5
+#define MOT_PIN_L_DIR 17
 
 #define HAMMER_PIN 2
 
 //right drive motor
-#define MOT_PIN_R_1 23
-#define MOT_PIN_R_2 22
-#define MOT_PIN_R_PWM 19
+#define MOT_PIN_R_PUL 23
+#define MOT_PIN_R_DIR 22
 
 //encoders for wheel odometry
 #define MOT_ENC_A_PIN_L 32
@@ -90,10 +88,6 @@ int speed_prev_time = 0;
 
 int counter;
 
-//steppers
-
-//Stepper();
-
 
 class Stepper{
   public: Stepper(uint8_t PUL_pin, uint8_t DIR_pin, uint8_t gear_reduction, uint8_t steps_per_rev) : PUL_PIN(PUL_pin), DIR_PIN(DIR_pin), GEAR_RED(gear_reduction), STEPS_PER_REV(steps_per_rev){
@@ -151,4 +145,10 @@ class Stepper{
     
 
 };
+
+
+//steppers
+Stepper driveR(MOT_PIN_R_PUL, MOT_PIN_R_DIR, 50, 200);
+Stepper driveL(MOT_PIN_L_PUL, MOT_PIN_L_DIR, 50, 200);
+
 

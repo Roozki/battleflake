@@ -31,10 +31,10 @@
 
 //bb includes
 #include<bb_msgs/robotStatus.h>
-#include<bb_msgs/battleCmd.h>
+#include<bb_msgs/networkStatus.h>
 
 //definitions
-#define ROBOT_ID 2
+#define ROBOT_ID 1
 #define ENEMY_ID 1 0 3 4
 #define ROBOT_LONG_SCALE 4
 #define ROBOT_LAT_SCALE 3

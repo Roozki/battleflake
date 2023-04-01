@@ -26,9 +26,11 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
     
 
     // Setup Publisher(s)
-     std::string status_topic = "robot_1_STATUS";
-     network_status_pub = nh.advertise<bb_msgs::robotStatus>(status_topic, 1);
+    std::string status_topic = "network_STATUS";
+    network_status_pub = nh.advertise<bb_msgs::networkStatus>(status_topic, 1);
 
+    status_topic = "robot_1_status";
+    robot_status_pub = nh.advertise<bb_msgs::robotStatus>(status_topic, 1);
 
  //int status, client_fd;
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -241,10 +243,38 @@ void BattleServer::sendCmds(int robot1_Ly, int robot1_Rz, int hammer){
  }
 
  void BattleServer::readRobot(){
+
   int datasize;
   datasize = read(newsockfd,readBuffer,256);
-     if (datasize < 0) ROS_ERROR("ERROR reading from socket");
-     ROS_INFO("Client says: %s\n",readBuffer);
+  if (datasize < 0){
+    ROS_ERROR("ERROR reading from socket"); 
+    return;
+  
+  }
+  std::string dataIn = std::string(readBuffer);
+
+  bb_msgs::robotStatus robot_msg;
+  if(dataIn.substr(0, 2) == "R1"){ //possibly make a switch case
+    //ROS_WARN("Robot 1 Online");
+    robot_msg.robot_status = '1';
+  }
+  int Rspeed_index = dataIn.find('(');
+  int Lspeed_index = dataIn.find('a');
+  int hammer_index = dataIn.find('b');
+
+  int rspeed = std::stoi(dataIn.substr(Rspeed_index, Lspeed_index));
+  int lspeed = std::stoi(dataIn.substr(Lspeed_index, hammer_index));
+  robot_msg.R_speed = rspeed;
+  robot_msg.L_speed = lspeedy;
+
+  
+
+
+  ROS_WARN("RSPEED : %i\n", rspeed);
+  ROS_WARN("LSPEED : %i\n", lspeed);
+
+    
+  ROS_INFO("Client says: %s\n",readBuffer);
 
  }
 

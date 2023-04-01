@@ -14,8 +14,8 @@
 #include <sensor_msgs/Joy.h>
 #include <geometry_msgs/Twist.h>
 //#include <keyboard_publisher/KeyEvent.h>
-#include <bb_msgs/battleCmd.h>
 #include<bb_msgs/robotStatus.h>
+#include<bb_msgs/networkStatus.h>
 #include <cstring>
 
 //network TCP stuff
@@ -60,7 +60,7 @@ private:
     int sockfd, newsockfd;
     socklen_t clilen;
     char buffer[256];
-    char readBuffer[1256];
+    char readBuffer[256];
     struct sockaddr_in serv_addr, cli_addr;
     int n; 
     float cartacc = 0.0;
@@ -78,8 +78,8 @@ private:
     ros::Subscriber vision_sub;
 
     ros::Publisher network_status_pub;
-    sensor_msgs::Joy joy;
-    bb_msgs::battleCmd cmd;
+    ros::Publisher robot_status_pub;
 
+    sensor_msgs::Joy joy;
 };
 #endif //SAMPLE_PACKAGE_MYNODE_H

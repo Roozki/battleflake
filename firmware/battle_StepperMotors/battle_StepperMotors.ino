@@ -3,6 +3,7 @@
 #include "battle_TCP.h"
 //#include "std/string.h"
 
+//interupt service routines
 void IRAM_ATTR encoder_L_isr() {
   int A_val = digitalRead(MOT_ENC_A_PIN_L);
   int B_val = digitalRead(MOT_ENC_B_PIN_L);
@@ -56,13 +57,6 @@ void setup() {
   pinMode(MOT_ENC_A_PIN_R, INPUT_PULLUP);
   pinMode(MOT_ENC_B_PIN_R, INPUT_PULLUP);
 
-  //motor pin modes
-  pinMode(MOT_PIN_L_1, OUTPUT);
-  pinMode(MOT_PIN_L_2, OUTPUT);
-  pinMode(MOT_PIN_R_PWM, OUTPUT);
-  pinMode(MOT_PIN_R_1, OUTPUT);
-  pinMode(MOT_PIN_R_2, OUTPUT);
-  pinMode(MOT_PIN_R_PWM, OUTPUT);
 
   //encoder ISRs
   attachInterrupt(digitalPinToInterrupt(MOT_ENC_A_PIN_L), encoder_L_isr, CHANGE);
@@ -194,23 +188,4 @@ void CMD() {
  
   //Serial.println(hammerUs);
 
-
-  if (pwrL > 0) {
-    digitalWrite(MOT_PIN_L_1, HIGH);
-    digitalWrite(MOT_PIN_L_2, LOW);
-  } else {
-    digitalWrite(MOT_PIN_L_1, LOW);
-    digitalWrite(MOT_PIN_L_2, HIGH);
-  }
-  analogWrite(MOT_PIN_L_PWM, abs(pwrL));
-
-  if (pwrR > 0) {
-    digitalWrite(MOT_PIN_R_1, HIGH); 
-    digitalWrite(MOT_PIN_R_2, LOW);
-  } else {
-    digitalWrite(MOT_PIN_R_1, LOW);
-    digitalWrite(MOT_PIN_R_2, HIGH);
-  }
-  analogWrite(MOT_PIN_R_PWM, abs(pwrR));
-  return;
 }
