@@ -20,8 +20,22 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
     image_transport::ImageTransport it(nh);
 
     // Initialize ArUco parameters
-    dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_50);
-    parameters = cv::aruco::DetectorParameters::create();
+    detectorParams = cv::aruco::DetectorParameters::create();
+    dictionary =  cv::makePtr<cv::aruco::Dictionary>(cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_50));
+     // Adjust the ArUco parameters
+    detectorParams->adaptiveThreshConstant = 7;
+    detectorParams->minMarkerPerimeterRate = 0.12;
+    detectorParams->maxMarkerPerimeterRate = 0.4;
+    detectorParams->polygonalApproxAccuracyRate = 0.06;
+    detectorParams->minCornerDistanceRate = 0.05;
+    detectorParams->markerBorderBits = 1;
+    detectorParams->minDistanceToBorder = 2;
+    detectorParams->minMarkerDistanceRate = 0.05;
+    detectorParams->cornerRefinementMethod = cv::aruco::CORNER_REFINE_SUBPIX;
+    detectorParams->cornerRefinementWinSize = 5;
+    detectorParams->cornerRefinementMaxIterations = 30;
+    detectorParams->cornerRefinementMinAccuracy = 0.1;
+    detectorParams->errorCorrectionRate = 0.6;
 
     std::string topic_to_subscribe_to = "cam_1/color/image_raw";
 
@@ -44,6 +58,10 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
 
     ROS_INFO("initiation appears successfull.");
 
+        // Check if your system has an NVIDIA GPU and if OpenCV is built with CUDA support
+    // if (!cv::cuda::getCudaEnabledDeviceCount()) {
+    //     ROS_ERROR("No GPU found or the library is compiled without CUDA support.");
+    // }
     //Create a window
     VideoCapture cap;
     //iterate through cameras, make sure only one is connected
@@ -112,7 +130,7 @@ std::vector<int> BattleVision::processMarkers(const cv::Mat& image) {
    
 
 
-    cv::aruco::detectMarkers(image, dictionary, markerCorners, markerIds, parameters);
+    cv::aruco::detectMarkers(image, dictionary, markerCorners, markerIds, detectorParams);
 
         image.copyTo(outputImage);
         if(!started){

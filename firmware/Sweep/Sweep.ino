@@ -41,7 +41,8 @@
 Servo myservo;  // create servo object to control a servo
 // 16 servo objects can be created on the ESP32
 
-int pos = 0;    // variable to store the servo position
+int pos = 70;    // variable to store the servo position
+int flag = false;
 // Recommended PWM GPIO pins on the ESP32 include 2,4,12-19,21-23,25-27,32-33 
 // Possible PWM GPIO pins on the ESP32-S2: 0(used by on-board button),1-17,18(used by on-board LED),19-21,26,33-42
 #if defined(ARDUINO_ESP32S2_DEV)
@@ -50,7 +51,11 @@ int servoPin = 16;
 int servoPin = 16;
 #endif
 
+
+
 void setup() {
+  Serial.begin(9600);
+  pinMode(servoPin, OUTPUT);
 	// Allow allocation of all timers
 	ESP32PWM::allocateTimer(0);
 	ESP32PWM::allocateTimer(1);
@@ -64,11 +69,21 @@ void setup() {
 }
 
 void loop() {
+ if(Serial.available() > 0){
+  
+  if (Serial.read() == 'q'){
+    Serial.println("40");
+pos = 70;
+  }else{
+pos = 40;   Serial.println("100");
 
-myservo.write(0);
-delay(5000);
-myservo.write(180);
-delay(5000);
+  }
+
+ }
+    myservo.write(pos);
+
+
+
 
 	// for (pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees
 	// 	// in steps of 1 degree

@@ -95,60 +95,60 @@ int counter;
 //Stepper();
 
 
-class Stepper{
-  public: Stepper(uint8_t PUL_pin, uint8_t DIR_pin, uint8_t gear_reduction, uint8_t steps_per_rev) : PUL_PIN(PUL_pin), DIR_PIN(DIR_pin), GEAR_RED(gear_reduction), STEPS_PER_REV(steps_per_rev){
-    pinMode(PUL_PIN, OUTPUT);
-    pinMode(DIR_PIN, OUTPUT);
-  }
+// class Stepper{
+//   public: Stepper(uint8_t PUL_pin, uint8_t DIR_pin, uint8_t gear_reduction, uint8_t steps_per_rev) : PUL_PIN(PUL_pin), DIR_PIN(DIR_pin), GEAR_RED(gear_reduction), STEPS_PER_REV(steps_per_rev){
+//     pinMode(PUL_PIN, OUTPUT);
+//     pinMode(DIR_PIN, OUTPUT);
+//   }
 
-  void setSpeed(int rpm){
-    step_delay_us = rpm*GEAR_RED*STEPS_PER_REV/60/1000000; //revolutions -> steps, minutes -> us
-  }
+//   void setSpeed(int rpm){
+//     step_delay_us = rpm*GEAR_RED*STEPS_PER_REV/60/1000000; //revolutions -> steps, minutes -> us
+//   }
 
-  void moveStepsRel(int steps){
-      dir = steps > 0;
+//   void moveStepsRel(int steps){
+//       dir = steps > 0;
 
-  }
+//   }
 
-  // void moveVel(float scale_vel){
-  //   bool dir = scale_vel > 0;
-  //   step_delay_us
-  //   digitalWrite(DIR_PIN, dir);
-  //   long time = micros();
-  //   if(time > prev_time + vel){
-  //     steps_to_take ++;
-  //     prev_time = time;
-  //   }
-  // }
-  void getSpeed(){
+//   // void moveVel(float scale_vel){
+//   //   bool dir = scale_vel > 0;
+//   //   step_delay_us
+//   //   digitalWrite(DIR_PIN, dir);
+//   //   long time = micros();
+//   //   if(time > prev_time + vel){
+//   //     steps_to_take ++;
+//   //     prev_time = time;
+//   //   }
+//   // }
+//   void getSpeed(){
 
-  }
+//   }
 
-  void run(){ //must be called at least as fast as step_delay_us
-    digitalWrite(DIR_PIN, dir);
-    time = micros();
-    if(time > prev_time + step_delay_us){
-      pul_state = !pul_state;
-      prev_time = time;
-    }
-    digitalWrite(PUL_PIN, pul_state);
+//   void run(){ //must be called at least as fast as step_delay_us
+//     digitalWrite(DIR_PIN, dir);
+//     time = micros();
+//     if(time > prev_time + step_delay_us){
+//       pul_state = !pul_state;
+//       prev_time = time;
+//     }
+//     digitalWrite(PUL_PIN, pul_state);
 
-  }
+//   }
 
-  private:
-    uint8_t PUL_PIN;
-    uint8_t DIR_PIN;
-    int prev_time;
-    uint16_t GEAR_RED;
-    uint16_t STEPS_PER_REV;
-    int step_delay_us = 100;
-    long steps_to_take;
-    long steps_taken;
-    bool dir;
-    bool pul_state;
-    long time;
+//   private:
+//     uint8_t PUL_PIN;
+//     uint8_t DIR_PIN;
+//     int prev_time;
+//     uint16_t GEAR_RED;
+//     uint16_t STEPS_PER_REV;
+//     int step_delay_us = 100;
+//     long steps_to_take;
+//     long steps_taken;
+//     bool dir;
+//     bool pul_state;
+//     long time;
 
     
 
-};
+// };
 

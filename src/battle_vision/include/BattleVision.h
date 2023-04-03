@@ -22,6 +22,8 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/aruco.hpp>
 #include <opencv2/opencv.hpp>
+//#include <opencv2/core/cuda.hpp>
+//#include <opencv2/core/cuda/arithm.hpp>
 
 // Image Conversion
 #include <cv_bridge/cv_bridge.h>
@@ -99,6 +101,8 @@ private:
     ros::Publisher cmd_pubber;
     image_transport::Publisher bounder;
     ros::Publisher point_pub;
+    ros::Subscriber server_status;
+    ros::Subscriber robot_1_status;
 
     void processClick(int x, int y);
     void sendCmd();
@@ -108,8 +112,9 @@ private:
      cv::Mat outputImage;//(window_height, window_width, CV_8UC3, cv::Scalar(0, 0, 0));
 
 
-    cv::Ptr<cv::aruco::Dictionary> dictionary;
-    cv::Ptr<cv::aruco::DetectorParameters> parameters;
+     cv::Ptr<cv::aruco::Dictionary> dictionary;
+     cv::Ptr<cv::aruco::DetectorParameters> detectorParams;
+
     bool draw_markers = true;
     int camera        = 1;
 

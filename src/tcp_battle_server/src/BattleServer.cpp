@@ -4,6 +4,7 @@ author: rowan zawadzki
 
 */
 BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
+
     // Setup NodeHandles
     ros::init(argc, argv, node_name);
     ros::NodeHandle nh;
@@ -96,6 +97,7 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
     //  close(newsockfd);
     //  close(sockfd);
 }
+
 void BattleServer::setup(int mode) {
     switch (mode){
       case joy_mode:
@@ -242,7 +244,7 @@ void BattleServer::sendCmds(int robot1_Ly, int robot1_Rz, int hammer){
 
  }
 
- void BattleServer::readRobot(){
+void BattleServer::readRobot(){
 
   int datasize;
   datasize = read(newsockfd,readBuffer,256);
@@ -265,7 +267,7 @@ void BattleServer::sendCmds(int robot1_Ly, int robot1_Rz, int hammer){
   int rspeed = std::stoi(dataIn.substr(Rspeed_index, Lspeed_index));
   int lspeed = std::stoi(dataIn.substr(Lspeed_index, hammer_index));
   robot_msg.R_speed = rspeed;
-  robot_msg.L_speed = lspeedy;
+  robot_msg.L_speed = lspeed;
 
   
 
@@ -281,9 +283,9 @@ void BattleServer::sendCmds(int robot1_Ly, int robot1_Rz, int hammer){
  void BattleServer::VisionCMDCallback(const geometry_msgs::Twist::ConstPtr& msg){ //should be custom msg
    
 
-   int x = msg->linear.x;
-   int z = msg->angular.z;
-   int hammer = 0;
+  int x = msg->linear.x;
+  int z = msg->angular.z;
+  int hammer = msg->angular.y;
    
   sendCmds(x, z, hammer);
 

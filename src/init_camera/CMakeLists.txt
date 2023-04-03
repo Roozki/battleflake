@@ -15,7 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
 )
-find_package(OpenCV REQUIRED)
+find_package(OpenCV 4.2.0 REQUIRED PATHS "/usr/local/share/OpenCV")
 
 
 ## System dependencies are found with CMake's conventions

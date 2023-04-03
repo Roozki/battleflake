@@ -1,0 +1,22 @@
+# Find OpenCV
+# This sets the following variables:
+# OpenCV_FOUND - True if OpenCV was found
+# OpenCV_INCLUDE_DIRS - include directories for OpenCV
+# OpenCV_LIBRARIES - link these to use OpenCV
+
+find_package(PkgConfig)
+pkg_check_modules(PC_OpenCV opencv4 QUIET)
+
+set(OpenCV_FOUND NOTFOUND)
+if (PC_OpenCV_FOUND)
+    set(OpenCV_FOUND TRUE)
+    set(OpenCV_INCLUDE_DIRS ${PC_OpenCV_INCLUDE_DIRS})
+    set(OpenCV_LIBRARIES ${PC_OpenCV_LIBRARIES})
+else()
+    message(WARNING "OpenCV 4.x not found. Using the system's default version.")
+    find_package(OpenCV REQUIRED)
+endif()
+
+message(STATUS "OpenCV version: ${OpenCV_VERSION}")
+message(STATUS "OpenCV include dirs: ${OpenCV_INCLUDE_DIRS}")
+message(STATUS "OpenCV libraries: ${OpenCV_LIBRARIES}")

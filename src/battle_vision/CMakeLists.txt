@@ -20,11 +20,11 @@ find_package(catkin REQUIRED COMPONENTS
   bb_msgs
   cv_bridge
 )
-find_package(OpenCV REQUIRED)
-
-## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
-
+#set(openCV_INCLUDE_DIRS "/usr/local/include/opencv4")
+#set(OpenCV_DIR "/usr/local/lib/cmake/opencv4")
+#include(FindOpenCV.txt) 
+# ^^ aftermath of my mess up ^^
+find_package(OpenCV 4.2.0 REQUIRED) 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -159,6 +159,7 @@ add_executable(battle_vision src/battle_vision.cpp src/BattleVision.cpp include/
 # )
 target_link_libraries(battle_vision ${catkin_LIBRARIES} ${OpenCV_LIBS}
 )
+
 
 #############
 ## Install ##

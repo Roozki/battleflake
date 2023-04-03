@@ -65,7 +65,6 @@ private:
     int n; 
     float cartacc = 0.0;
 
-
     //temp variables
     float tempacc = 0;
     int tempActivate = 0;

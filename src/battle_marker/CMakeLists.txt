@@ -143,7 +143,7 @@ include_directories(
 
 ## Declare a C++ executable
 # add_executable(marker_qr_detection_node src/sample_package_node.cpp)
-add_executable(battle_marker src/battle_marker.cpp src/BattleMarker.cpp include/BattleMarker.h)
+#add_executable(battle_marker src/battle_marker.cpp src/BattleMarker.cpp include/BattleMarker.h)
 
 
 
@@ -157,7 +157,7 @@ add_executable(battle_marker src/battle_marker.cpp src/BattleMarker.cpp include/
 # target_link_libraries(marker_qr_detection_node
 #   ${catkin_LIBRARIES}
 # )
-target_link_libraries(battle_marker ${catkin_LIBRARIES} ${OpenCV_LIBS})
+#target_link_libraries(battle_marker ${catkin_LIBRARIES} ${OpenCV_LIBS})
 
 
 
