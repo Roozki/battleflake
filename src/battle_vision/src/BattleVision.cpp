@@ -4,7 +4,8 @@ author: rowan zawadzki
 
 */
 
-
+    auto previous_time = std::chrono::high_resolution_clock::now();
+    auto current_time = std::chrono::high_resolution_clock::now();
 
 
 BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
@@ -17,6 +18,8 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
 
 
 
+
+
     // Setup image transport
     image_transport::ImageTransport it(nh);
 
@@ -24,9 +27,9 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
     detectorParams = cv::aruco::DetectorParameters::create();
     dictionary =  cv::makePtr<cv::aruco::Dictionary>(cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_50));
      // Adjust the ArUco parameters
-   // detectorParams->adaptiveThreshConstant = 7;
+    detectorParams->adaptiveThreshConstant = 7;
     detectorParams->minMarkerPerimeterRate = 0.01;
-    detectorParams->maxMarkerPerimeterRate = 0.8;
+    detectorParams->maxMarkerPerimeterRate = 0.3;
     // detectorParams->polygonalApproxAccuracyRate = 0.06;
     // detectorParams->minCornerDistanceRate = 0.05;
     // detectorParams->markerBorderBits = 1;
@@ -202,7 +205,7 @@ std::vector<int> BattleVision::processMarkers(const cv::Mat& image) {
             }
             if(orginizedIds.find(ENEMY_ID) != orginizedIds.end()){
                 int enemy_index = std::distance(markerIds.begin(), std::find(markerIds.begin(), markerIds.end(), ENEMY_ID));   
-                click = (markerCorners[enemy_index][0] + markerCorners[enemy_index][2])/2;
+                //click = (markerCorners[enemy_index][0] + markerCorners[enemy_index][2])/2;
                 cv::line(outputImage, BattleVision::m1, click, cv::Scalar(200, 100, 0), 4);
 
             }
@@ -231,7 +234,9 @@ void BattleVision::processClick(int x, int y){
     //todo reduntant function
     ROS_INFO("Left Button clicked at: %d, %d", x, y);
     cv::Point2f tmp(x, y);
-    //click = tmp;
+    click = tmp;
+    cv::line(outputImage, BattleVision::m1, click, cv::Scalar(200, 100, 0), 4);
+
     return;
 }
 
@@ -258,23 +263,54 @@ cv::Point2f desTraj(click.x - m1.x, click.y - m1.y); //desired traj
 
 float cross = currTraj.x * desTraj.y - currTraj.y * desTraj.x;
 
-
+std::string wee("angle is: ");
 
 if (cross > 0){
-std::string wee("angle is: ");
 wee += std::to_string(-angle);
     cv::putText(outputImage, wee, angle_to_go_point, font1, fontScale, cv::Scalar(0, 100, 0), thickness, lineType, false);
-    cmd.angular.z = -200;
+   
+    cmd.angular.z = 1;
+
+    
 }else if (cross < 0){
-std::string wee("angle is: ");
 wee += std::to_string(angle);
     cv::putText(outputImage, wee, angle_to_go_point, font1, fontScale, cv::Scalar(110, 0, 0), thickness, lineType, false);
 
-    cmd.angular.z = 200;
+    cmd.angular.z = -1;
 
 }
 
-if (angle < 15){
+    error = (setpoint - angle) / 180.0; //setpoint is always 0, dividing by 180 to normilize
+    current_time = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> dt = current_time - previous_time;
+    integral += error * dt.count();
+    derivative = (error - previous_error) / dt.count();
+    cmd.angular.z *= (Kp * error + Ki * integral + Kd * derivative - offset);
+    float intergral_adj = Ki*integral;
+    float derrivative_adj = Kd * derivative;
+    float proportional_adj = Kp * error;
+
+        previous_error = error;
+        previous_time = current_time;
+    if(cmd.angular.z < -255){
+        cmd.angular.z = -255;
+    }
+    if(cmd.angular.z > 255){
+        cmd.angular.z = 255;
+    }
+    wee = "PID Control Verbose";
+    cv::putText(outputImage, wee, cv::Point2f(50, 300), font1, 1.3, cv::Scalar(10, 10, 10), thickness, lineType, false);
+    wee = "Poportional adjustment (Kp * Pe): ";
+    wee += std::to_string(proportional_adj);
+    cv::putText(outputImage, wee, proportional_adj_point, font1, 1.1, cv::Scalar(120, 0, 0), thickness, lineType, false);
+    wee = "Intergral adjustment (Ki * I): ";
+    wee += std::to_string(intergral_adj);
+    cv::putText(outputImage, wee, intergral_adj_point, font1, 1.1, cv::Scalar(0, 0, 120), thickness, lineType, false);
+    wee = "Derrivitave adjustment (Kd * D): ";
+    wee += std::to_string(derrivative_adj);
+    cv::putText(outputImage, wee, derrivative_adj_point, font1, 1.1, cv::Scalar(0, 120, 0), thickness, lineType, false);
+    
+if (angle < 5){
     if(mag2 > 500){
     cmd.linear.x = 180;
     }else if(mag2 > 100){
@@ -283,10 +319,16 @@ if (angle < 15){
     cmd.linear.x = 0;
     }
     cmd.angular.z = 0;
+    integral = 0;
+   // derivative = 0;
 
 }else{
     cmd.linear.x = 0; 
 }
+    wee = "Angular Effort Output: ";
+    wee += std::to_string(cmd.angular.z);
+    cv::putText(outputImage, wee, cv::Point2f(50, 500), font1, 1.2, cv::Scalar(255, 255, 255), thickness, lineType, false);
+
 
 }else{ //if robot marker is not detected
 

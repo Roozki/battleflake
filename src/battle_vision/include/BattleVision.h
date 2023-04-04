@@ -8,6 +8,7 @@
 // STD Includes
 #include <iostream>
 #include <chrono>
+#include <thread>
 #include <unordered_set>
 
 // ROS Includes
@@ -35,6 +36,11 @@
 #include<bb_msgs/robotStatus.h>
 #include<bb_msgs/networkStatus.h>
 
+//PID controller
+// #define Kp 1.0
+// #define Ki 0.1
+// #define kd 0.1
+
 //definitions
 #define ROBOT_ID 3
 #define ENEMY_ID 1
@@ -55,7 +61,7 @@ public:
                
        // Battpt.x = x;
        // BattleVision::pt.y = y;
-       BattleVision::processClick(x, y);
+       //BattleVision::processClick(x, y);
      }
      else if  ( event == EVENT_RBUTTONDOWN )
      {
@@ -69,6 +75,7 @@ public:
      {
         
           //cout << "Mouse move over the window - position (" << x << ", " << y << ")" << endl;
+       BattleVision::processClick(x, y);
 
      }
     }
@@ -134,6 +141,9 @@ private:
     int lineType = cv::LINE_AA; //anti-aliased line
      cv::Point2f robot_locked_point = cv::Point2f(70, 140);
      cv::Point2f angle_to_go_point = cv::Point2f(50, 250);
+     cv::Point2f proportional_adj_point = cv::Point2f(50, 350);
+     cv::Point2f intergral_adj_point = cv::Point2f(50, 400);
+     cv::Point2f derrivative_adj_point = cv::Point2f(50, 450);
 
      cv::Scalar textColour = cv::Scalar(100, 0, 0); //bgr
 
@@ -163,7 +173,7 @@ private:
           int slip;
      
      //flags
-     bool started = false;
+     bool started = true;
 
 
      struct Robot
@@ -174,6 +184,19 @@ private:
      };
      Robot robot1;
 
+     // PID gains
+    double Kp = 0.5 * 100;
+    double Ki = 0.7 * 100;
+    double Kd = 0.2 * 100;
+
+    double setpoint = 0.0; // Desired trajectory angle
+    double error = 0.0;
+    double previous_error = 0.0;
+    double integral = 0.0;
+    double derivative = 0.0;
+    double output = 0.0;
+    int offset = 150;
+    
      
 
 };
