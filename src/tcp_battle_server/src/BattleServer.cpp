@@ -66,13 +66,16 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
   //       ROS_INFO("\nConnection Failed \n");
         
   //   }
+bb_msgs::networkStatus net_msg;
 
 
   if (bind(sockfd, (struct sockaddr *) &serv_addr,
     sizeof(serv_addr)) < 0){
    ROS_ERROR("ERROR on binding, killall -9/-15 might help?");
+    net_msg.status = false;
       }else{
    ROS_INFO("Socket was free, bind successful");
+    net_msg.status = true;
       }
         listen(sockfd,5);
 
@@ -88,7 +91,7 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
             inet_ntoa(serv_addr.sin_addr), ntohs(serv_addr.sin_port));
 
 
-   
+  network_status_pub.publish(net_msg);
 
      n = read(newsockfd,buffer,255);
      if (n < 0) ROS_ERROR("ERROR reading from socket");
@@ -179,24 +182,24 @@ void BattleServer::JoyCallback(const sensor_msgs::Joy::ConstPtr& msg) {//this ca
     //float PWR = mapFloat(rsticky, 1.0, -1.0, 0.0, 100.0);
    // float REVERSE = mapFloat(ltrig, 1.0, -1.0, 0.0, 100.0);
 
-    float maphammer = mapFloat(rtrig, 1.0, -1.0, 0.0, 200.0);
+    float maphammer = mapFloat(rtrig, 1.0, -1.0, 0.0, 50.0);
     int hammer = maphammer;
 
 
-    int PWR1yL = (rsticky + lsticky) * 100;
-    int PWR1zR = (rstickx + lstickx) * 100;
+    int PWR1yL = (rsticky + lsticky) * 300;
+    int PWR1zR = (rstickx + lstickx) * 300;
     
-  if(PWR1yL > 100){
-    PWR1yL = 100;
+  if(PWR1yL > 300){
+    PWR1yL = 300;
   } 
-  if(PWR1yL < -100){
-    PWR1yL = -100;
+  if(PWR1yL < -300){
+    PWR1yL = -300;
   }
-  if(PWR1zR > 100){
-    PWR1zR = 100;
+  if(PWR1zR > 300){
+    PWR1zR = 300;
   } 
-  if(PWR1zR < -100){
-    PWR1zR = -100;
+  if(PWR1zR < -300){
+    PWR1zR = -300;
   }   
    
 
@@ -253,27 +256,28 @@ void BattleServer::readRobot(){
     return;
   
   }
+
   std::string dataIn = std::string(readBuffer);
 
   bb_msgs::robotStatus robot_msg;
   if(dataIn.substr(0, 2) == "R1"){ //possibly make a switch case
     //ROS_WARN("Robot 1 Online");
-    robot_msg.robot_status = '1';
+    robot_msg.status = '1';
   }
   int Rspeed_index = dataIn.find('(');
   int Lspeed_index = dataIn.find('a');
   int hammer_index = dataIn.find('b');
 
-  int rspeed = std::stoi(dataIn.substr(Rspeed_index, Lspeed_index));
-  int lspeed = std::stoi(dataIn.substr(Lspeed_index, hammer_index));
-  robot_msg.R_speed = rspeed;
-  robot_msg.L_speed = lspeed;
+ // int rspeed = std::stoi(dataIn.substr(Rspeed_index, Lspeed_index));
+  //int lspeed = std::stoi(dataIn.substr(Lspeed_index, hammer_index));
+  //robot_msg.R_speed = rspeed;
+  //robot_msg.L_speed = lspeed;
 
   
+  robot_status_pub.publish(robot_msg);
 
-
-  ROS_WARN("RSPEED : %i\n", rspeed);
-  ROS_WARN("LSPEED : %i\n", lspeed);
+  //ROS_WARN("RSPEED : %i\n", rspeed);
+  //ROS_WARN("LSPEED : %i\n", lspeed);
 
     
   ROS_INFO("Client says: %s\n",readBuffer);

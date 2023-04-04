@@ -47,8 +47,8 @@ void setup() {
   Serial.begin(9600);
 
   pinMode(HAMMER_PIN, OUTPUT);
+  hammer.setPeriodHertz(200);  // standard 50 hz servo
   hammer.attach(HAMMER_PIN, 500, 2500);
-  hammer.setPeriodHertz(100);  // standard 50 hz servo
 
   //encoder pin modes
   pinMode(MOT_ENC_A_PIN_L, INPUT_PULLUP);
@@ -109,16 +109,16 @@ void setup() {
     int indexRZ = dat.indexOf("b");
     int angZ = (dat.substring(indexLY + 1, indexRZ)).toInt();
     int indexHAM = dat.indexOf("c");
-    int hammerPOS = (dat.substring(indexRZ + 1, indexHAM).toInt());
+    int hammerCommand = (dat.substring(indexRZ + 1, indexHAM).toInt());
   
 
     //Serial.println(angZ);
     //Serial.println(hammerPOS);
     //Serial.println(linX);
    velocityCMD(linX, angZ);
-   attack(hammerPOS);
+   attack(hammerCommand);
 
-   String sendBuffer_str = "R1(" + String(pwrL) + "a" + String(pwrR) + "b" + String(hammerUs) + "c" + String(encoder_L_position) + "d" + String(encoder_R_position) + "e)\n";
+   String sendBuffer_str = "R1(" + String(pwrL) + "a" + String(pwrR) + "b" + String(hammerPos) + "c" + String(encoder_L_position) + "d" + String(encoder_R_position) + "e)\n";
    char sendBuffer[sendBuffer_str.length() + 1];
    sendBuffer_str.toCharArray(sendBuffer, sendBuffer_str.length() + 1);
    c->write(sendBuffer);
@@ -148,6 +148,7 @@ void loop() {
     encoder_L_prev = encoder_L_position;
     encoder_R_prev = encoder_R_position;
   }
+
   // Serial.print(Lspeed);
   // Serial.print("  ");
   // Serial.println(Rspeed);
@@ -164,36 +165,51 @@ void velocityCMD(int vel_lin, int vel_ang) {
     return;
   }
 
-  if(vel_lin < Rspeed){
-    pwrR-=5;
+  pwrR = vel_lin + vel_ang;
+  pwrL = vel_lin - vel_ang;
 
-  }
-  if(vel_lin < Lspeed){
-    pwrL-=5;
-  }
-   if(vel_lin > Rspeed){
-    pwrR+= 5;
+  // if(vel_lin < Rspeed){
+  //   pwrR-=5;
 
-  }
-  if(vel_lin > Lspeed){
-    pwrL+=5;
-  }
+  // }
+  // if(vel_lin < Lspeed){
+  //   pwrL-=5;
+  // }
+  //  if(vel_lin > Rspeed){
+  //   pwrR+= 5;
+
+  // }
+  // if(vel_lin > Lspeed){
+  //   pwrL+=5;
+  // }
 
   CMD();
- 
+ return;
 }
 
 void attack(int hammerCMD){
- hammerUs = map(hammerCMD, 0, 201, 5, 90);
+ //hammerUs = map(hammerCMD, 0, 201, 5, 90);
+  hammerPos = 70;
+if(hammerCMD > 30){
+  hammerPos = 70;
+}
+if(hammerCMD <= 30){
+  hammerPos = 40;
+}
+if(hammerCMD <= 10){
+  hammerPos = 30;
+}
   //delay(10);
-  hammer.write(hammerUs);
+      hammer.write(hammerPos);
+
+  //Serial.println(hammerPos);
 }
 
 
 void CMD() {
  
   //Serial.println(hammerUs);
-
+  
 
   if (pwrL > 0) {
     digitalWrite(MOT_PIN_L_1, HIGH);

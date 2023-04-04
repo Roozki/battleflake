@@ -36,8 +36,8 @@
 #include<bb_msgs/networkStatus.h>
 
 //definitions
-#define ROBOT_ID 1
-#define ENEMY_ID 1 0 3 4
+#define ROBOT_ID 3
+#define ENEMY_ID 1
 #define ROBOT_LONG_SCALE 4
 #define ROBOT_LAT_SCALE 3
 
@@ -82,6 +82,9 @@ public:
 
 private:
     void frameCallback(const sensor_msgs::Image::ConstPtr& msg);
+    void robot_1_callBack(const bb_msgs::robotStatus::ConstPtr& msg);
+    void network_callBack(const bb_msgs::networkStatus::ConstPtr& msg);
+
      bool robotTracked = false;
      cv::Point2f m1;
      cv::Point2f m2;
@@ -146,6 +149,9 @@ private:
      int frameCLK_9 = 0;
      int frameCLK_10 = 0;
 
+     //network status
+     int networkSpeed = -1;
+     bool networkStatus = 0;
      //int blink_interval_ms = 500; // Blink interval in milliseconds
 
      //int blink_interval = 5; //blink_interval_ms/1000/fps;
@@ -157,7 +163,18 @@ private:
           int slip;
      
      //flags
-     bool started = true;
+     bool started = false;
+
+
+     struct Robot
+     {
+          char status = '0';
+          int L_speed = 0;
+          int R_speed = 0;
+     };
+     Robot robot1;
+
+     
 
 };
 #endif //SAMPLE_PACKAGE_MYNODE_H

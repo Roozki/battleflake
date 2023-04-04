@@ -16,6 +16,7 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
     ros::Duration sleep_duration(2.0);
 
 
+
     // Setup image transport
     image_transport::ImageTransport it(nh);
 
@@ -23,19 +24,19 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
     detectorParams = cv::aruco::DetectorParameters::create();
     dictionary =  cv::makePtr<cv::aruco::Dictionary>(cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_50));
      // Adjust the ArUco parameters
-    detectorParams->adaptiveThreshConstant = 7;
-    detectorParams->minMarkerPerimeterRate = 0.12;
-    detectorParams->maxMarkerPerimeterRate = 0.4;
-    detectorParams->polygonalApproxAccuracyRate = 0.06;
-    detectorParams->minCornerDistanceRate = 0.05;
-    detectorParams->markerBorderBits = 1;
-    detectorParams->minDistanceToBorder = 2;
-    detectorParams->minMarkerDistanceRate = 0.05;
-    detectorParams->cornerRefinementMethod = cv::aruco::CORNER_REFINE_SUBPIX;
-    detectorParams->cornerRefinementWinSize = 5;
-    detectorParams->cornerRefinementMaxIterations = 30;
-    detectorParams->cornerRefinementMinAccuracy = 0.1;
-    detectorParams->errorCorrectionRate = 0.6;
+   // detectorParams->adaptiveThreshConstant = 7;
+    detectorParams->minMarkerPerimeterRate = 0.01;
+    detectorParams->maxMarkerPerimeterRate = 0.8;
+    // detectorParams->polygonalApproxAccuracyRate = 0.06;
+    // detectorParams->minCornerDistanceRate = 0.05;
+    // detectorParams->markerBorderBits = 1;
+    // detectorParams->minDistanceToBorder = 2;
+    // detectorParams->minMarkerDistanceRate = 0.05;
+    // detectorParams->cornerRefinementMethod = cv::aruco::CORNER_REFINE_SUBPIX;
+    // detectorParams->cornerRefinementWinSize = 5;
+    // detectorParams->cornerRefinementMaxIterations = 30;
+    // detectorParams->cornerRefinementMinAccuracy = 0.1;
+    // detectorParams->errorCorrectionRate = 0.6;
 
     std::string topic_to_subscribe_to = "cam_1/color/image_raw";
 
@@ -45,6 +46,8 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
 
     std::string topic = private_nh.resolveName("identified");
     queue_size        = 10;
+
+    robot_1_status = nh.subscribe<bb_msgs::robotStatus>("robot_1_status", 5, &BattleVision::robot_1_callBack, this);
 
    // point_pub = private_nh.advertise<bb_msgs::bbVision2point>("battlepoint", queue_size);
 
@@ -112,6 +115,21 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
 
 }
 
+    void BattleVision::robot_1_callBack(const bb_msgs::robotStatus::ConstPtr& msg){
+
+        robot1.status = msg->status;
+        robot1.L_speed = msg->L_speed;
+        robot1.R_speed = msg->R_speed;
+        return;
+    }
+
+    void BattleVision::network_callBack(const bb_msgs::networkStatus::ConstPtr& msg){
+        networkStatus = msg->status;
+        networkSpeed = msg->speed;
+        return;
+    }
+
+
 
 
 void BattleVision::frameCallback(const sensor_msgs::Image::ConstPtr& msg) {
@@ -178,10 +196,15 @@ std::vector<int> BattleVision::processMarkers(const cv::Mat& image) {
 
 
                 //desired traj vector
-                cv::line(outputImage, BattleVision::m1, click, cv::Scalar(200, 100, 0), 4);
 
             }else{
             robotTracked = false;
+            }
+            if(orginizedIds.find(ENEMY_ID) != orginizedIds.end()){
+                int enemy_index = std::distance(markerIds.begin(), std::find(markerIds.begin(), markerIds.end(), ENEMY_ID));   
+                click = (markerCorners[enemy_index][0] + markerCorners[enemy_index][2])/2;
+                cv::line(outputImage, BattleVision::m1, click, cv::Scalar(200, 100, 0), 4);
+
             }
         }else{
             flashWarning("NO MARKERS DETECTED", 400, 300, 3, 2, cv::Scalar(0, 100, 200), 15, 2, &frameCLK_1);
@@ -208,8 +231,8 @@ void BattleVision::processClick(int x, int y){
     //todo reduntant function
     ROS_INFO("Left Button clicked at: %d, %d", x, y);
     cv::Point2f tmp(x, y);
-    click = tmp;
-
+    //click = tmp;
+    return;
 }
 
 
@@ -241,21 +264,21 @@ if (cross > 0){
 std::string wee("angle is: ");
 wee += std::to_string(-angle);
     cv::putText(outputImage, wee, angle_to_go_point, font1, fontScale, cv::Scalar(0, 100, 0), thickness, lineType, false);
-    cmd.angular.z = 30;
+    cmd.angular.z = -200;
 }else if (cross < 0){
 std::string wee("angle is: ");
 wee += std::to_string(angle);
     cv::putText(outputImage, wee, angle_to_go_point, font1, fontScale, cv::Scalar(110, 0, 0), thickness, lineType, false);
 
-    cmd.angular.z = -30;
+    cmd.angular.z = 200;
 
 }
 
 if (angle < 15){
     if(mag2 > 500){
-    cmd.linear.x = 40;
+    cmd.linear.x = 180;
     }else if(mag2 > 100){
-    cmd.linear.x = 30;
+    cmd.linear.x = 90;
     }else{
     cmd.linear.x = 0;
     }
@@ -277,8 +300,8 @@ if (angle < 15){
 }
 
 
-if (cmd.linear.x > 40){
-    cmd.linear.x = 40;
+if (cmd.linear.x > 300){
+    cmd.linear.x = 300;
 }
 
 cmd_pubber.publish(cmd);

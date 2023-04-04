@@ -11,7 +11,7 @@
 #define MOT_PIN_L_2 18
 #define MOT_PIN_L_PWM 17
 
-#define HAMMER_PIN 2
+#define HAMMER_PIN 16 
 
 //right drive motor
 #define MOT_PIN_R_1 23
@@ -59,7 +59,7 @@ Servo hammer;
 
 int pwrL;
 int pwrR;
-int hammerUs; //hammer microsecond pulse width for PWM
+int hammerPos; //hammer microsecond pulse width for PWM
 
 void sendCmd();
 

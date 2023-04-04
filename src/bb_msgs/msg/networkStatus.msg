@@ -1,6 +1,6 @@
 std_msgs/Header header
-bool network_status
-bool robot_status
-int8 network_speed
+bool status
+int8 clients
+int16 speed
 
 
