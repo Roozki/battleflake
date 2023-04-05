@@ -161,7 +161,9 @@ void velocityCMD(int vel_lin, int vel_ang) {
   if(vel_lin == 0 && vel_ang == 0){ //quickly stops, no need to calculate anything
     pwrR = 0;
     pwrL = 0;
-    CMD();
+    CMD();#define kp 1.5
+// #define ki 0.1
+// #define kd 0.15
     return;
   }
 

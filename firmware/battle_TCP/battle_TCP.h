@@ -27,9 +27,9 @@
 #define ENC_STEPS_PER_SHAFT_ROTATION 1856 //64 per revolution, with 30:1 gear ratio
 
 //PID values for velocity
-#define kp 1.5
-#define ki 0.1
-#define kd 0.15
+// #define kp 1.5
+// #define ki 0.1
+// #define kd 0.15
 
 //speed stuff
 #define SPEED_INTERVAL_MS 50

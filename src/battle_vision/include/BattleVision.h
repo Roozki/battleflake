@@ -46,6 +46,8 @@
 #define ENEMY_ID 1
 #define ROBOT_LONG_SCALE 4
 #define ROBOT_LAT_SCALE 3
+#define WEAPON_SCALE 7
+
 
 using namespace cv;
 class BattleVision {

@@ -172,14 +172,19 @@ std::vector<int> BattleVision::processMarkers(const cv::Mat& image) {
                 cv::Point2f front_robot = m1 + robot_longitudinal_direction*ROBOT_LONG_SCALE;
                 cv::Point2f right_robot = m1 + robot_lateral_direction*ROBOT_LAT_SCALE;
                 cv::Point2f left_robot = m1 - robot_lateral_direction*ROBOT_LAT_SCALE;
-
+                cv::Point2f weapon_position = m1 + robot_longitudinal_direction*WEAPON_SCALE;
                 
-                //robot 'render'
+                //robot'render'
+
                 cv::line(outputImage, BattleVision::m1, front_robot, cv::Scalar(0, 0, 200), 5);
                 cv::line(outputImage, BattleVision::m1, right_robot, cv::Scalar(100, 100, 0), 5);
                 cv::line(outputImage, BattleVision::m1, left_robot, cv::Scalar(100, 100, 0), 5);
                 std::string hammer_msg = "HAMMER ";
                 cv::Scalar hamer_msg_colour;
+
+                //weapon attack point
+                cv::circle(outputImage, weapon_position, 5, cv::Scalar(0, 0, 200), cv::FILLED);
+
                 switch (hammer_STATUS)
                 {
                 case 1:
@@ -205,7 +210,7 @@ std::vector<int> BattleVision::processMarkers(const cv::Mat& image) {
             }
             if(orginizedIds.find(ENEMY_ID) != orginizedIds.end()){
                 int enemy_index = std::distance(markerIds.begin(), std::find(markerIds.begin(), markerIds.end(), ENEMY_ID));   
-                //click = (markerCorners[enemy_index][0] + markerCorners[enemy_index][2])/2;
+                click = (markerCorners[enemy_index][0] + markerCorners[enemy_index][2])/2;
                 cv::line(outputImage, BattleVision::m1, click, cv::Scalar(200, 100, 0), 4);
 
             }
@@ -233,9 +238,9 @@ std::vector<int> BattleVision::processMarkers(const cv::Mat& image) {
 void BattleVision::processClick(int x, int y){
     //todo reduntant function
     ROS_INFO("Left Button clicked at: %d, %d", x, y);
-    cv::Point2f tmp(x, y);
-    click = tmp;
-    cv::line(outputImage, BattleVision::m1, click, cv::Scalar(200, 100, 0), 4);
+   // cv::Point2f tmp(x, y);
+    //click = tmp;
+    //cv::line(outputImage, BattleVision::m1, click, cv::Scalar(200, 100, 0), 4);
 
     return;
 }
@@ -273,7 +278,7 @@ wee += std::to_string(-angle);
 
     
 }else if (cross < 0){
-wee += std::to_string(angle);
+    wee += std::to_string(angle);
     cv::putText(outputImage, wee, angle_to_go_point, font1, fontScale, cv::Scalar(110, 0, 0), thickness, lineType, false);
 
     cmd.angular.z = -1;
@@ -286,6 +291,7 @@ wee += std::to_string(angle);
     integral += error * dt.count();
     derivative = (error - previous_error) / dt.count();
     cmd.angular.z *= (Kp * error + Ki * integral + Kd * derivative - offset);
+   
     float intergral_adj = Ki*integral;
     float derrivative_adj = Kd * derivative;
     float proportional_adj = Kp * error;
@@ -310,24 +316,29 @@ wee += std::to_string(angle);
     wee += std::to_string(derrivative_adj);
     cv::putText(outputImage, wee, derrivative_adj_point, font1, 1.1, cv::Scalar(0, 120, 0), thickness, lineType, false);
     
-if (angle < 5){
-    if(mag2 > 500){
+if (angle < 8){
+     if(mag2 > 500){
     cmd.linear.x = 180;
     }else if(mag2 > 100){
     cmd.linear.x = 90;
     }else{
     cmd.linear.x = 0;
     }
+
     cmd.angular.z = 0;
     integral = 0;
-   // derivative = 0;
+    // derivative = 0;
 
 }else{
     cmd.linear.x = 0; 
 }
+
     wee = "Angular Effort Output: ";
     wee += std::to_string(cmd.angular.z);
     cv::putText(outputImage, wee, cv::Point2f(50, 500), font1, 1.2, cv::Scalar(255, 255, 255), thickness, lineType, false);
+
+   
+
 
 
 }else{ //if robot marker is not detected
