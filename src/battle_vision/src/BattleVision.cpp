@@ -27,7 +27,7 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
     detectorParams = cv::aruco::DetectorParameters::create();
     dictionary =  cv::makePtr<cv::aruco::Dictionary>(cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_50));
      // Adjust the ArUco parameters
-    detectorParams->adaptiveThreshConstant = 7;
+    detectorParams->adaptiveThreshConstant = 9;
     detectorParams->minMarkerPerimeterRate = 0.01;
     detectorParams->maxMarkerPerimeterRate = 0.3;
     // detectorParams->polygonalApproxAccuracyRate = 0.06;
@@ -42,6 +42,7 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
     // detectorParams->errorCorrectionRate = 0.6;
 
     std::string topic_to_subscribe_to = "cam_1/color/image_raw";
+
 
     int queue_size = 5;
     shutter  = it.subscribe(
@@ -81,6 +82,7 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
         i = 10;
     }
     }
+
     
     //double fps = cap.get(CAP_PROP_FPS);
     ROS_WARN("%f", fps);
@@ -90,6 +92,7 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
     
     cap.set(CAP_PROP_FPS, BattleVision::fps);
 
+    frame_clock frameCLK_5;//up to here is used
 
     while (ros::ok())
     {
@@ -101,7 +104,16 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
 
             cv::waitKey(1000/fps);
             frameCLK_1++;
-            frameCLK_2++;            
+            frameCLK_2++;  
+            //frameCLK_5.clk++;
+            // frameCLK_6++;
+            // frameCLK_7++;
+            // frameCLK_8++;
+            // frameCLK_9++;
+            // frameCLK_10++;
+
+            frameCLK_5.resetCheck();
+          
 
             loop_rate.sleep();
   if (frame.empty())
@@ -172,7 +184,7 @@ std::vector<int> BattleVision::processMarkers(const cv::Mat& image) {
                 cv::Point2f front_robot = m1 + robot_longitudinal_direction*ROBOT_LONG_SCALE;
                 cv::Point2f right_robot = m1 + robot_lateral_direction*ROBOT_LAT_SCALE;
                 cv::Point2f left_robot = m1 - robot_lateral_direction*ROBOT_LAT_SCALE;
-                cv::Point2f weapon_position = m1 + robot_longitudinal_direction*WEAPON_SCALE;
+                cv::Point2f hammerHitPoint = m1 + robot_longitudinal_direction*WEAPON_SCALE;
                 
                 //robot'render'
 
@@ -180,40 +192,82 @@ std::vector<int> BattleVision::processMarkers(const cv::Mat& image) {
                 cv::line(outputImage, BattleVision::m1, right_robot, cv::Scalar(100, 100, 0), 5);
                 cv::line(outputImage, BattleVision::m1, left_robot, cv::Scalar(100, 100, 0), 5);
                 std::string hammer_msg = "HAMMER ";
-                cv::Scalar hamer_msg_colour;
+                cv::Scalar hammer_msg_colour;
 
                 //weapon attack point
-                cv::circle(outputImage, weapon_position, 5, cv::Scalar(0, 0, 200), cv::FILLED);
+                cv::circle(outputImage, hammerHitPoint, 25, cv::Scalar(0, 0, 200), 3);
+
+                if(orginizedIds.find(ENEMY_ID) != orginizedIds.end()){ // make update even if robot is not locked
+                    int enemy_index = std::distance(markerIds.begin(), std::find(markerIds.begin(), markerIds.end(), ENEMY_ID));   
+                    enemy_position = (markerCorners[enemy_index][0] + markerCorners[enemy_index][2])/2;
+                    cv::line(outputImage, BattleVision::m1, enemy_position, cv::Scalar(200, 100, 0), 4);
+                    //frameCLK_5.threshold = 40;
+                      //  frameCLK_5.resetCheck();
+                        if(areCVPointsClose(hammerHitPoint, enemy_position, 30.0)){
+                            
+                            // Draw the 'X' on the hammerhit point
+                            std::random_device rd;
+                            std::mt19937 gen(rd());
+                            int b = 0;//std::uniform_int_distribution<>(0, 255)(gen);
+                            int g = 0;//std::uniform_int_distribution<>(0, 255)(gen);
+                            int r = 0;//std::uniform_int_distribution<>(0, 255)(gen);
+                            //if(frameCLK_5.clk > 28){
+
+                            cv::Point2f line_length(70.0, 70.0);
+                            cv::line(outputImage, cv::Point2f(enemy_position.x - line_length.x, enemy_position.y - line_length.y), cv::Point2f(enemy_position.x + line_length.x, enemy_position.y + line_length.y), cv::Scalar(b,g,r), 10);
+                            cv::line(outputImage, cv::Point2f(enemy_position.x - line_length.x, enemy_position.y + line_length.y), cv::Point2f(enemy_position.x + line_length.x, enemy_position.y - line_length.y), cv::Scalar(b,g,r), 10);
+                            hammer_counter ++;
+                            if(cmd.angular.y == 70.0 && hammer_counter > 10){
+                                hammer_counter = -50; //cooldown
+                                hammer_STATUS = -1;
+                                cmd.angular.y = 0;
+                            }else if(hammer_counter > 10){
+                                
+                                hammer_counter = 0;
+                                hammer_STATUS = 1;
+                                cmd.angular.y = 70.0;
+
+                            }
+                            
+                        }else{
+                            hammer_counter = 0;
+                            cmd.angular.y = 0;
+                            hammer_STATUS = 0;
+                        }
+                    
+
+                }else{
+                            
+                            cmd.angular.y = 0;
+                            hammer_STATUS = 0;
+                        }
 
                 switch (hammer_STATUS)
                 {
                 case 1:
-                    hammer_msg += "READY";
-                    hamer_msg_colour = cv::Scalar(0, 250, 0);
+                    hammer_msg += "TARGET LOCKED";
+                    hammer_msg_colour = cv::Scalar(0, 0, 250);
                     break;
                 case 0:
-                    hammer_msg += "STANDBY";
-                    hamer_msg_colour = cv::Scalar(255, 255, 0);
+                    hammer_msg += "READY";
+                    hammer_msg_colour = cv::Scalar(0, 250, 0);
                     break;
                 default:
-                    hammer_msg += "READY";
-                    hamer_msg_colour = cv::Scalar(0, 250, 0);
+                    hammer_msg += "STANDBY";
+                    hammer_msg_colour = cv::Scalar(255, 255, 0);
                     break;
                 }
-                flashWarning(hammer_msg, 50, 600, 1, 1, cv::Scalar(0, 200, 200), 5, 3, &frameCLK_2);
+                flashWarning(hammer_msg, 50, 600, 1, 1.5, hammer_msg_colour, 5, 3, &frameCLK_2);
 
 
                 //desired traj vector
 
+
             }else{
             robotTracked = false;
+            
             }
-            if(orginizedIds.find(ENEMY_ID) != orginizedIds.end()){
-                int enemy_index = std::distance(markerIds.begin(), std::find(markerIds.begin(), markerIds.end(), ENEMY_ID));   
-                click = (markerCorners[enemy_index][0] + markerCorners[enemy_index][2])/2;
-                cv::line(outputImage, BattleVision::m1, click, cv::Scalar(200, 100, 0), 4);
-
-            }
+            
         }else{
             flashWarning("NO MARKERS DETECTED", 400, 300, 3, 2, cv::Scalar(0, 100, 200), 15, 2, &frameCLK_1);
             robotTracked = false;
@@ -239,24 +293,31 @@ void BattleVision::processClick(int x, int y){
     //todo reduntant function
     ROS_INFO("Left Button clicked at: %d, %d", x, y);
    // cv::Point2f tmp(x, y);
-    //click = tmp;
+    //enemy_position = tmp;
     //cv::line(outputImage, BattleVision::m1, click, cv::Scalar(200, 100, 0), 4);
 
     return;
+}
+
+bool BattleVision::areCVPointsClose(const cv::Point2f &point1, const cv::Point2f &point2, float threshold)
+{
+    float distance = cv::norm(point1 - point2);
+    return distance <= threshold;
 }
 
 
 void BattleVision::sendCmd(){
 //TODO: sophisticated PID
 //may need to be in another node
-geometry_msgs::Twist cmd;
 if(robotTracked){
 
     std::string temp("ROBOT LOCKED");
     cv::putText(outputImage, temp, robot_locked_point, font2, 2.0, cv::Scalar(0, 200, 0), thickness, lineType, false);
 
 cv::Point2f currTraj(m2.x - m1.x, m2.y - m1.y); //current trajectory
-cv::Point2f desTraj(click.x - m1.x, click.y - m1.y); //desired traj
+cv::Point2f desTraj(enemy_position.x - m1.x, enemy_position.y - m1.y); //desired traj
+//cv::Point2f desTraj(hammerHitPoint.x - m1.x, hammerHitPoint.y - m1.y); //desired traj
+
 
 
  float dot = desTraj.dot(currTraj);
@@ -315,8 +376,12 @@ wee += std::to_string(-angle);
     wee = "Derrivitave adjustment (Kd * D): ";
     wee += std::to_string(derrivative_adj);
     cv::putText(outputImage, wee, derrivative_adj_point, font1, 1.1, cv::Scalar(0, 120, 0), thickness, lineType, false);
-    
-if (angle < 8){
+    if(angle < 2){
+        integral = 0;
+        cmd.angular.z = 0;
+
+    }
+if (angle < 2){
      if(mag2 > 500){
     cmd.linear.x = 180;
     }else if(mag2 > 100){
@@ -325,8 +390,6 @@ if (angle < 8){
     cmd.linear.x = 0;
     }
 
-    cmd.angular.z = 0;
-    integral = 0;
     // derivative = 0;
 
 }else{
@@ -350,6 +413,7 @@ if (angle < 8){
 
     cmd.linear.x = 0;
     cmd.angular.z = 0;
+    cmd.angular.y = 0; //ang y is hammer, yeah should be a custom msg but daid is less than a week away
 }
 
 

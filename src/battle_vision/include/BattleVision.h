@@ -10,6 +10,7 @@
 #include <chrono>
 #include <thread>
 #include <unordered_set>
+#include <random>
 
 // ROS Includes
 //#include <std_msgs/String.h>
@@ -43,7 +44,7 @@
 
 //definitions
 #define ROBOT_ID 3
-#define ENEMY_ID 1
+#define ENEMY_ID 4
 #define ROBOT_LONG_SCALE 4
 #define ROBOT_LAT_SCALE 3
 #define WEAPON_SCALE 7
@@ -90,14 +91,15 @@ public:
 
 
 private:
-    void frameCallback(const sensor_msgs::Image::ConstPtr& msg);
-    void robot_1_callBack(const bb_msgs::robotStatus::ConstPtr& msg);
-    void network_callBack(const bb_msgs::networkStatus::ConstPtr& msg);
+     void frameCallback(const sensor_msgs::Image::ConstPtr& msg);
+     void robot_1_callBack(const bb_msgs::robotStatus::ConstPtr& msg);
+     void network_callBack(const bb_msgs::networkStatus::ConstPtr& msg);
+     bool areCVPointsClose(const cv::Point2f &point1, const cv::Point2f &point2, float threshold);
 
      bool robotTracked = false;
      cv::Point2f m1;
      cv::Point2f m2;
-     cv::Point2f click;
+     cv::Point2f enemy_position;
      cv::Point2f hammerHitPoint;
      cv::Point2f pivot;
 
@@ -149,17 +151,17 @@ private:
 
      cv::Scalar textColour = cv::Scalar(100, 0, 0); //bgr
 
-     //time stuff
+     //time stuff, should be a vector or hash map
      int frameCLK_1 = 0;
      int frameCLK_2 = 0;
      int frameCLK_3 = 0;
      int frameCLK_4 = 0;
-     int frameCLK_5 = 0;
      int frameCLK_6 = 0;
      int frameCLK_7 = 0;
      int frameCLK_8 = 0;
      int frameCLK_9 = 0;
      int frameCLK_10 = 0;
+
 
      //network status
      int networkSpeed = -1;
@@ -171,11 +173,13 @@ private:
      //robot feedback
           //weapon systems
           int hammer_STATUS = -1;
+          int hammer_counter = 0;
           //drive systems
           int slip;
      
      //flags
      bool started = true;
+     
 
 
      struct Robot
@@ -186,10 +190,24 @@ private:
      };
      Robot robot1;
 
+     struct frame_clock
+     {
+          uint8_t clk = 0;
+          uint8_t threshold = 250;
+          void resetCheck(){
+               if (clk > threshold){
+                    clk = 0;
+               }
+          }
+     };
+     frame_clock frameCLK_5;
+     geometry_msgs::Twist cmd;
+
+
      // PID gains
-    double Kp = 0.5 * 100;
-    double Ki = 0.7 * 100;
-    double Kd = 0.2 * 100;
+    double Kp = 0.7 * 100;
+    double Ki = 0.6 * 100;
+    double Kd = 0.5 * 100;
 
     double setpoint = 0.0; // Desired trajectory angle
     double error = 0.0;
@@ -197,7 +215,7 @@ private:
     double integral = 0.0;
     double derivative = 0.0;
     double output = 0.0;
-    int offset = 150;
+    int offset = 150; //depends on battery level
     
      
 
