@@ -7,7 +7,7 @@ author: rowan zawadzki
     auto previous_time = std::chrono::high_resolution_clock::now();
     auto current_time = std::chrono::high_resolution_clock::now();
 
-
+   
 BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
     // Setup NodeHandles
     ros::init(argc, argv, node_name);
@@ -237,7 +237,7 @@ std::vector<int> BattleVision::processMarkers(const cv::Mat& image) {
                     
 
                 }else{
-                            
+
                             cmd.angular.y = 0;
                             hammer_STATUS = 0;
                         }
@@ -345,7 +345,7 @@ wee += std::to_string(-angle);
     cmd.angular.z = -1;
 
 }
-
+    //angular PID
     error = (setpoint - angle) / 180.0; //setpoint is always 0, dividing by 180 to normilize
     current_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> dt = current_time - previous_time;
@@ -353,12 +353,11 @@ wee += std::to_string(-angle);
     derivative = (error - previous_error) / dt.count();
     cmd.angular.z *= (Kp * error + Ki * integral + Kd * derivative - offset);
    
-    float intergral_adj = Ki*integral;
-    float derrivative_adj = Kd * derivative;
-    float proportional_adj = Kp * error;
+    float intergral_adj = linKi*linintegral;
+    float derrivative_adj = linKd * linderivative;
+    float proportional_adj = linKp * linerror;
 
-        previous_error = error;
-        previous_time = current_time;
+        
     if(cmd.angular.z < -255){
         cmd.angular.z = -255;
     }
@@ -381,23 +380,38 @@ wee += std::to_string(-angle);
         cmd.angular.z = 0;
 
     }
-if (angle < 2){
-     if(mag2 > 500){
-    cmd.linear.x = 180;
-    }else if(mag2 > 100){
-    cmd.linear.x = 90;
-    }else{
-    cmd.linear.x = 0;
+    if (angle < 8){
+    cv::Point2f hammerTraj = hammerHitPoint - m1;
+    cv::Point2f norm_traj = hammerTraj / cv::norm(hammerTraj);
+    cv::Point2f hammer_to_enemy =  enemy_position - hammerHitPoint;
+    float vector_hammer_to_enemy = hammer_to_enemy.dot(norm_traj);
+    cv::Point2f projected_hammer_to_enemy = vector_hammer_to_enemy * norm_traj;
+    cv::Point2f displacement_hammer_enemy = hammer_to_enemy - projected_hammer_to_enemy;
+
+
+     linerror = (linsetpoint - cv::norm(displacement_hammer_enemy)); //setpoint is always 0, xxxxdividing by sqrt(width*height) to sorta normilize
+    //current_time = std::chrono::high_resolution_clock::now();
+    //std::chrono::duration<double> dt = current_time - previous_time;
+    linintegral += linerror * dt.count();
+    linderivative = (linerror - linprevious_error) / dt.count();
+    //cmd.linear.x = 1;
+    cmd.linear.x = norm(displacement_hammer_enemy);//(linKp * linerror + linKi * linintegral + linKd * linderivative - offset);
+
+     if(abs(norm(displacement_hammer_enemy)) < 0.2){
+         linintegral = 0;
     }
+
+
+    
 
     // derivative = 0;
 
 }else{
-    cmd.linear.x = 0; 
+   // cmd.linear.x = 0; 
 }
 
     wee = "Angular Effort Output: ";
-    wee += std::to_string(cmd.angular.z);
+    wee += std::to_string(cmd.linear.x);
     cv::putText(outputImage, wee, cv::Point2f(50, 500), font1, 1.2, cv::Scalar(255, 255, 255), thickness, lineType, false);
 
    
@@ -422,6 +436,11 @@ if (cmd.linear.x > 300){
 }
 
 cmd_pubber.publish(cmd);
+
+previous_error = error;
+linprevious_error = linerror;
+
+previous_time = current_time;
 
 }
 void BattleVision::flashWarning(std::string msg, int x, int y, double size, int thick, cv::Scalar colour, int blink_interval, int cycle, int* frameCLK){

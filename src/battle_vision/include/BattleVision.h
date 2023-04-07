@@ -204,7 +204,7 @@ private:
      geometry_msgs::Twist cmd;
 
 
-     // PID gains
+     // PID angular gains
     double Kp = 0.7 * 100;
     double Ki = 0.6 * 100;
     double Kd = 0.5 * 100;
@@ -216,6 +216,19 @@ private:
     double derivative = 0.0;
     double output = 0.0;
     int offset = 150; //depends on battery level
+
+     // PID linear gains
+    double linKp = 0.7 * 100;
+    double linKi = 0.6 * 100;
+    double linKd = 0.5 * 100;
+
+    double linsetpoint = 0.0; // Desired distance from point
+    double linerror = 0.0;
+    double linprevious_error = 0.0;
+    double linintegral = 0.0;
+    double linderivative = 0.0;
+    double linOutput = 0.0;
+    //int offset = 150; //depends on battery level
     
      
 
