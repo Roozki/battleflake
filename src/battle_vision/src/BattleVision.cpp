@@ -176,15 +176,15 @@ std::vector<int> BattleVision::processMarkers(const cv::Mat& image) {
             if(orginizedIds.find(ROBOT_ID) != orginizedIds.end()){
                 int robot_index = std::distance(markerIds.begin(), std::find(markerIds.begin(), markerIds.end(), ROBOT_ID));   
                 robotTracked = true;
-                BattleVision::m1 = (markerCorners[robot_index][0] + markerCorners[robot_index][1])/2;
-                BattleVision::m2 = (markerCorners[robot_index][2] + markerCorners[robot_index][3])/2;
+                m1 = (markerCorners[robot_index][0] + markerCorners[robot_index][1])/2;
+                m2 = (markerCorners[robot_index][2] + markerCorners[robot_index][3])/2;
                 cv::Point2f robot_longitudinal_direction = m2 - m1;
                 cv::Point2f robot_lateral_direction = markerCorners[robot_index][2] - markerCorners[robot_index][3];
 
                 cv::Point2f front_robot = m1 + robot_longitudinal_direction*ROBOT_LONG_SCALE;
                 cv::Point2f right_robot = m1 + robot_lateral_direction*ROBOT_LAT_SCALE;
                 cv::Point2f left_robot = m1 - robot_lateral_direction*ROBOT_LAT_SCALE;
-                cv::Point2f hammerHitPoint = m1 + robot_longitudinal_direction*WEAPON_SCALE;
+                hammerHitPoint = m1 + robot_longitudinal_direction*WEAPON_SCALE;
                 
                 //robot'render'
 
@@ -380,27 +380,28 @@ wee += std::to_string(-angle);
         cmd.angular.z = 0;
 
     }
-    if (angle < 8){
-    cv::Point2f hammerTraj = hammerHitPoint - m1;
-    cv::Point2f norm_traj = hammerTraj / cv::norm(hammerTraj);
-    cv::Point2f hammer_to_enemy =  enemy_position - hammerHitPoint;
-    float vector_hammer_to_enemy = hammer_to_enemy.dot(norm_traj);
-    cv::Point2f projected_hammer_to_enemy = vector_hammer_to_enemy * norm_traj;
-    cv::Point2f displacement_hammer_enemy = hammer_to_enemy - projected_hammer_to_enemy;
+    if (angle < 80){
+    //cv::Point2f currTraj(m2.x - m1.x, m2.y - m1.y); //current trajectory
+    cv::Point2f hammerToRobot = m2 - hammerHitPoint;
+    cv::Point2f hammer_to_enemy = enemy_position - hammerHitPoint;
+    float dot_hammer_to_enemy = hammer_to_enemy.dot(hammerToRobot);
 
 
-     linerror = (linsetpoint - cv::norm(displacement_hammer_enemy)); //setpoint is always 0, xxxxdividing by sqrt(width*height) to sorta normilize
+   // cv::Point2f projected_hammer_to_enemy = dot_hammer_to_enemy * (hammerHitPoint - m2);
+    //cv::line(outputImage, projected_hammer_to_enemy, hammerHitPoint, cv::Scalar(100, 100, 100), 5);
+    //cv::Point2f displacement_hammer_enemy = hammer_to_enemy - projected_hammer_to_enemy;
+
+    linerror = (linsetpoint - dot_hammer_to_enemy/1000); //setpoint is always 0, xxxxdividing by sqrt(width*height) to sorta normilize
     //current_time = std::chrono::high_resolution_clock::now();
     //std::chrono::duration<double> dt = current_time - previous_time;
-    linintegral += linerror * dt.count();
-    linderivative = (linerror - linprevious_error) / dt.count();
+   // linintegral += linerror * dt.count();
+    //linderivative = (linerror - linprevious_error) / dt.count();
     //cmd.linear.x = 1;
-    cmd.linear.x = norm(displacement_hammer_enemy);//(linKp * linerror + linKi * linintegral + linKd * linderivative - offset);
+    cmd.linear.x = linerror;//(linKp * linerror + linKi * linintegral + linKd * linderivative - offset);
 
-     if(abs(norm(displacement_hammer_enemy)) < 0.2){
-         linintegral = 0;
-    }
-
+    //  if(abs(norm(displacement_hammer_enemy)) < 0.2){
+    //      linintegral = 0;
+    // }
 
     
 
