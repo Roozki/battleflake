@@ -28,8 +28,8 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
     dictionary =  cv::makePtr<cv::aruco::Dictionary>(cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_50));
      // Adjust the ArUco parameters
     //detectorParams->adaptiveThreshConstant = 2;
-    detectorParams->minMarkerPerimeterRate = 0.1;
-    detectorParams->maxMarkerPerimeterRate = 0.3;
+    detectorParams->minMarkerPerimeterRate = 0.01;
+    detectorParams->maxMarkerPerimeterRate = 0.1;
     // detectorParams->polygonalApproxAccuracyRate = 0.06;
     // detectorParams->minCornerDistanceRate = 0.05;
     // detectorParams->markerBorderBits = 1;
@@ -359,14 +359,17 @@ if(tempangresetflag != angresetflag){
         ROS_ERROR("ang ang ang  RESET");
 
     }
-if(angle > 5){
-
-    //angular PID
     error = (setpoint - angle) / 180.0; //setpoint is always 0, dividing by 180 to normilize
     current_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> dt = current_time - previous_time;
     integral += error * dt.count();
     derivative = (error - previous_error) / dt.count();
+    previous_error = error;
+
+if(angle > 5){
+
+    //angular PID
+    
     cmd.angular.z *= (Kp * error + Ki * integral + Kd * derivative - offset);
    
 
@@ -416,18 +419,19 @@ if(angle > 5){
     //cv::line(outputImage, projected_hammer_to_enemy, hammerHitPoint, cv::Scalar(100, 100, 100), 5);
     //cv::Point2f displacement_hammer_enemy = hammer_to_enemy - projected_hammer_to_enemy;
 
-    linerror = (linsetpoint - dot_hammer_to_enemy/10000000); //setpoint is always 0, xxxxdividing by sqrt(width*height) to sorta normilize
+    linerror = (linsetpoint - dot_hammer_to_enemy/norm(hammerToRobot)); //setpoint is always 0, xxxxdividing by sqrt(width*height) to sorta normilize
+
     current_time = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> dt = current_time - previous_time;
-   linintegral += linerror * dt.count();
-    linderivative = (linerror - linprevious_error) / dt.count();
+    std::chrono::duration<double> lindt = current_time - previous_time;
+   linintegral += linerror * lindt.count();
+    linderivative = (linerror - linprevious_error) / lindt.count();
     //cmd.linear.x = 1;
     if(linerror < 0){
         linoffset = abs(offset);
     }else{
         linoffset = -1* abs(offset);
     }
-    cmd.linear.x = (linKp * linerror + linKi * linintegral + linKd * linderivative - linoffset);
+    cmd.linear.x = (linKp * linerror + linKi * linintegral + linKd * linderivative + linoffset);
 
       if(abs(dot_hammer_to_enemy/1000) < 10){
           linintegral = 0;
@@ -472,7 +476,6 @@ if(cmd.linear.x < -300){
 //cmd.angular.z = 0;
 cmd_pubber.publish(cmd);
 
-previous_error = error;
 linprevious_error = linerror;
 
 previous_time = current_time;

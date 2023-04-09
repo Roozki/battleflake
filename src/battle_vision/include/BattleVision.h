@@ -207,7 +207,7 @@ private:
      // PID angular gains
     double Kp = 0.61 * 100;
     double Ki = 0.1 * 100;
-    double Kd = 3.27 * 100;
+    double Kd = 1.27 * 100;
     //kd = 1.77 was a good one, kp = 0.6-7
 
     double setpoint = 0.0; // Desired trajectory angle
@@ -216,12 +216,12 @@ private:
     double integral = 0.0;
     double derivative = 0.0;
     double output = 0.0;
-    int offset = 150; //depends on battery level
+    int offset = 140; //depends on battery level
 
      // PID linear gains
-    double linKp = 0.1 * 1;
+    double linKp = 0.5 * 10;
     double linKi = 0 * 1;
-    double linKd = 5.9 * 100;
+    double linKd = 0 * 100;
 
     double linsetpoint = 0.0; // Desired distance from point
     double linerror = 0.0;
