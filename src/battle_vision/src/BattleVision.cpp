@@ -27,8 +27,8 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
     detectorParams = cv::aruco::DetectorParameters::create();
     dictionary =  cv::makePtr<cv::aruco::Dictionary>(cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_50));
      // Adjust the ArUco parameters
-    detectorParams->adaptiveThreshConstant = 9;
-    detectorParams->minMarkerPerimeterRate = 0.01;
+    detectorParams->adaptiveThreshConstant = 5;
+    detectorParams->minMarkerPerimeterRate = 0.1;
     detectorParams->maxMarkerPerimeterRate = 0.3;
     // detectorParams->polygonalApproxAccuracyRate = 0.06;
     // detectorParams->minCornerDistanceRate = 0.05;
@@ -292,6 +292,11 @@ std::vector<int> BattleVision::processMarkers(const cv::Mat& image) {
 void BattleVision::processClick(int x, int y){
     //todo reduntant function
     ROS_INFO("Left Button clicked at: %d, %d", x, y);
+
+        //cmd.linear.x = 0; 
+        //cmd.angular.z = 0; 
+
+
    // cv::Point2f tmp(x, y);
     //enemy_position = tmp;
     //cv::line(outputImage, BattleVision::m1, click, cv::Scalar(200, 100, 0), 4);
@@ -353,9 +358,9 @@ wee += std::to_string(-angle);
     derivative = (error - previous_error) / dt.count();
     cmd.angular.z *= (Kp * error + Ki * integral + Kd * derivative - offset);
    
-    float intergral_adj = linKi*linintegral;
-    float derrivative_adj = linKd * linderivative;
-    float proportional_adj = linKp * linerror;
+    float intergral_adj = Ki*integral;
+    float derrivative_adj = Kd * derivative;
+    float proportional_adj = Kp * error;
 
         
     if(cmd.angular.z < -255){
@@ -375,12 +380,12 @@ wee += std::to_string(-angle);
     wee = "Derrivitave adjustment (Kd * D): ";
     wee += std::to_string(derrivative_adj);
     cv::putText(outputImage, wee, derrivative_adj_point, font1, 1.1, cv::Scalar(0, 120, 0), thickness, lineType, false);
-    if(angle < 2){
+    if(angle <= 4){
         integral = 0;
         cmd.angular.z = 0;
 
     }
-    if (angle < 80){
+    if (angle <= 4){
     //cv::Point2f currTraj(m2.x - m1.x, m2.y - m1.y); //current trajectory
     cv::Point2f hammerToRobot = m2 - hammerHitPoint;
     cv::Point2f hammer_to_enemy = enemy_position - hammerHitPoint;
@@ -392,27 +397,33 @@ wee += std::to_string(-angle);
     //cv::Point2f displacement_hammer_enemy = hammer_to_enemy - projected_hammer_to_enemy;
 
     linerror = (linsetpoint - dot_hammer_to_enemy/1000); //setpoint is always 0, xxxxdividing by sqrt(width*height) to sorta normilize
-    //current_time = std::chrono::high_resolution_clock::now();
-    //std::chrono::duration<double> dt = current_time - previous_time;
-   // linintegral += linerror * dt.count();
-    //linderivative = (linerror - linprevious_error) / dt.count();
+    current_time = std::chrono::high_resolution_clock::now();
+    dt = current_time - previous_time;
+   linintegral += linerror * dt.count();
+    linderivative = (linerror - linprevious_error) / dt.count();
     //cmd.linear.x = 1;
-    cmd.linear.x = linerror;//(linKp * linerror + linKi * linintegral + linKd * linderivative - offset);
+    if(linerror < 0){
+        offset = abs(offset);
+    }else{
+        offset = -1* abs(offset);
+    }
+    cmd.linear.x = (linKp * linerror + linKi * linintegral + linKd * linderivative - offset);
 
-    //  if(abs(norm(displacement_hammer_enemy)) < 0.2){
-    //      linintegral = 0;
-    // }
+      if(abs(dot_hammer_to_enemy/1000) < 10){
+          linintegral = 0;
+          ROS_WARN("LIN  LIN    LIN  RESET");
+     }
 
     
 
     // derivative = 0;
 
 }else{
-   // cmd.linear.x = 0; 
+    cmd.linear.x = 0; 
 }
 
     wee = "Angular Effort Output: ";
-    wee += std::to_string(cmd.linear.x);
+    wee += std::to_string(cmd.angular.z);
     cv::putText(outputImage, wee, cv::Point2f(50, 500), font1, 1.2, cv::Scalar(255, 255, 255), thickness, lineType, false);
 
    
@@ -435,7 +446,10 @@ wee += std::to_string(-angle);
 if (cmd.linear.x > 300){
     cmd.linear.x = 300;
 }
-
+if(cmd.linear.x < -300){
+    cmd.linear.x = -300;
+}
+//cmd.angular.z = 0;
 cmd_pubber.publish(cmd);
 
 previous_error = error;
