@@ -27,7 +27,7 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
     detectorParams = cv::aruco::DetectorParameters::create();
     dictionary =  cv::makePtr<cv::aruco::Dictionary>(cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_50));
      // Adjust the ArUco parameters
-    detectorParams->adaptiveThreshConstant = 4;
+    detectorParams->adaptiveThreshConstant = 2;
     detectorParams->minMarkerPerimeterRate = 0.1;
     detectorParams->maxMarkerPerimeterRate = 0.3;
     // detectorParams->polygonalApproxAccuracyRate = 0.06;
@@ -297,8 +297,8 @@ void BattleVision::processClick(int x, int y){
         //cmd.angular.z = 0; 
 
 
-   // cv::Point2f tmp(x, y);
-    //enemy_position = tmp;
+    cv::Point2f tmp(x, y);
+    enemy_position = tmp;
     //cv::line(outputImage, BattleVision::m1, click, cv::Scalar(200, 100, 0), 4);
 
     return;
@@ -313,6 +313,7 @@ bool BattleVision::areCVPointsClose(const cv::Point2f &point1, const cv::Point2f
 
 void BattleVision::sendCmd(){
 //TODO: sophisticated PID
+//algebruh
 //may need to be in another node
 if(robotTracked){
 
@@ -349,14 +350,16 @@ if (cross > 0){
     cv::putText(outputImage, wee, angle_to_go_point, font1, fontScale, cv::Scalar(110, 0, 0), thickness, lineType, false);
 angresetflag = false;
 
-    cmd.angular.z = -1;
+    cmd.angular.z = -0.98;
 
 }
 if(tempangresetflag != angresetflag){
         integral = 0;
         tempangresetflag = angresetflag;
+        ROS_ERROR("ang ang ang  RESET");
+
     }
-if(angle > 5){
+if(false && angle > 4){
 
     //angular PID
     error = (setpoint - angle) / 180.0; //setpoint is always 0, dividing by 180 to normilize
@@ -424,7 +427,7 @@ if(angle > 5){
     }else{
         linoffset = -1* abs(offset);
     }
-    cmd.linear.x = (linKp * linerror + linKi * linintegral + linKd * linderivative - offset);
+    cmd.linear.x = (linKp * linerror + linKi * linintegral + linKd * linderivative - linoffset);
 
       if(abs(dot_hammer_to_enemy/1000) < 10){
           linintegral = 0;
