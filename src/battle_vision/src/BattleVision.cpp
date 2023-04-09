@@ -27,7 +27,7 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
     detectorParams = cv::aruco::DetectorParameters::create();
     dictionary =  cv::makePtr<cv::aruco::Dictionary>(cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_50));
      // Adjust the ArUco parameters
-    detectorParams->adaptiveThreshConstant = 5;
+    detectorParams->adaptiveThreshConstant = 4;
     detectorParams->minMarkerPerimeterRate = 0.1;
     detectorParams->maxMarkerPerimeterRate = 0.3;
     // detectorParams->polygonalApproxAccuracyRate = 0.06;
@@ -337,7 +337,8 @@ float cross = currTraj.x * desTraj.y - currTraj.y * desTraj.x;
 std::string wee("angle is: ");
 
 if (cross > 0){
-wee += std::to_string(-angle);
+    wee += std::to_string(-angle);
+    angresetflag = true;
     cv::putText(outputImage, wee, angle_to_go_point, font1, fontScale, cv::Scalar(0, 100, 0), thickness, lineType, false);
    
     cmd.angular.z = 1;
@@ -346,10 +347,17 @@ wee += std::to_string(-angle);
 }else if (cross < 0){
     wee += std::to_string(angle);
     cv::putText(outputImage, wee, angle_to_go_point, font1, fontScale, cv::Scalar(110, 0, 0), thickness, lineType, false);
+angresetflag = false;
 
     cmd.angular.z = -1;
 
 }
+if(tempangresetflag != angresetflag){
+        integral = 0;
+        tempangresetflag = angresetflag;
+    }
+if(angle > 5){
+
     //angular PID
     error = (setpoint - angle) / 180.0; //setpoint is always 0, dividing by 180 to normilize
     current_time = std::chrono::high_resolution_clock::now();
@@ -358,10 +366,12 @@ wee += std::to_string(-angle);
     derivative = (error - previous_error) / dt.count();
     cmd.angular.z *= (Kp * error + Ki * integral + Kd * derivative - offset);
    
+
+
     float intergral_adj = Ki*integral;
     float derrivative_adj = Kd * derivative;
     float proportional_adj = Kp * error;
-
+     
         
     if(cmd.angular.z < -255){
         cmd.angular.z = -255;
@@ -380,12 +390,19 @@ wee += std::to_string(-angle);
     wee = "Derrivitave adjustment (Kd * D): ";
     wee += std::to_string(derrivative_adj);
     cv::putText(outputImage, wee, derrivative_adj_point, font1, 1.1, cv::Scalar(0, 120, 0), thickness, lineType, false);
-    if(angle <= 4){
-        integral = 0;
-        cmd.angular.z = 0;
+    // if(angle <= 4){
+    //     integral = 0;
+    //     //cmd.angular.z = 0;
 
-    }
-    if (angle <= 4){
+    // }
+   
+}else{
+    cmd.angular.z = 0;
+}
+    if (angle <= 5){
+    cmd.angular.z = 0;
+    integral = 0;
+
     //cv::Point2f currTraj(m2.x - m1.x, m2.y - m1.y); //current trajectory
     cv::Point2f hammerToRobot = m2 - hammerHitPoint;
     cv::Point2f hammer_to_enemy = enemy_position - hammerHitPoint;
@@ -396,16 +413,16 @@ wee += std::to_string(-angle);
     //cv::line(outputImage, projected_hammer_to_enemy, hammerHitPoint, cv::Scalar(100, 100, 100), 5);
     //cv::Point2f displacement_hammer_enemy = hammer_to_enemy - projected_hammer_to_enemy;
 
-    linerror = (linsetpoint - dot_hammer_to_enemy/1000); //setpoint is always 0, xxxxdividing by sqrt(width*height) to sorta normilize
+    linerror = (linsetpoint - dot_hammer_to_enemy/100000); //setpoint is always 0, xxxxdividing by sqrt(width*height) to sorta normilize
     current_time = std::chrono::high_resolution_clock::now();
-    dt = current_time - previous_time;
+    std::chrono::duration<double> dt = current_time - previous_time;
    linintegral += linerror * dt.count();
     linderivative = (linerror - linprevious_error) / dt.count();
     //cmd.linear.x = 1;
     if(linerror < 0){
-        offset = abs(offset);
+        linoffset = abs(offset);
     }else{
-        offset = -1* abs(offset);
+        linoffset = -1* abs(offset);
     }
     cmd.linear.x = (linKp * linerror + linKi * linintegral + linKd * linderivative - offset);
 
@@ -414,7 +431,7 @@ wee += std::to_string(-angle);
           ROS_WARN("LIN  LIN    LIN  RESET");
      }
 
-    
+    //my brain is like broken rn
 
     // derivative = 0;
 
