@@ -27,7 +27,7 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
     detectorParams = cv::aruco::DetectorParameters::create();
     dictionary =  cv::makePtr<cv::aruco::Dictionary>(cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_50));
      // Adjust the ArUco parameters
-    detectorParams->adaptiveThreshConstant = 2;
+    //detectorParams->adaptiveThreshConstant = 2;
     detectorParams->minMarkerPerimeterRate = 0.1;
     detectorParams->maxMarkerPerimeterRate = 0.3;
     // detectorParams->polygonalApproxAccuracyRate = 0.06;
@@ -359,7 +359,7 @@ if(tempangresetflag != angresetflag){
         ROS_ERROR("ang ang ang  RESET");
 
     }
-if(false && angle > 4){
+if(angle > 5){
 
     //angular PID
     error = (setpoint - angle) / 180.0; //setpoint is always 0, dividing by 180 to normilize
@@ -416,7 +416,7 @@ if(false && angle > 4){
     //cv::line(outputImage, projected_hammer_to_enemy, hammerHitPoint, cv::Scalar(100, 100, 100), 5);
     //cv::Point2f displacement_hammer_enemy = hammer_to_enemy - projected_hammer_to_enemy;
 
-    linerror = (linsetpoint - dot_hammer_to_enemy/100000); //setpoint is always 0, xxxxdividing by sqrt(width*height) to sorta normilize
+    linerror = (linsetpoint - dot_hammer_to_enemy/10000000); //setpoint is always 0, xxxxdividing by sqrt(width*height) to sorta normilize
     current_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> dt = current_time - previous_time;
    linintegral += linerror * dt.count();

@@ -219,9 +219,9 @@ private:
     int offset = 150; //depends on battery level
 
      // PID linear gains
-    double linKp = 0.4 * 1;
+    double linKp = 0.1 * 1;
     double linKi = 0 * 1;
-    double linKd = 0.3 * 1;
+    double linKd = 5.9 * 100;
 
     double linsetpoint = 0.0; // Desired distance from point
     double linerror = 0.0;
