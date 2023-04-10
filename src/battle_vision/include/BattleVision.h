@@ -47,7 +47,13 @@
 #define ENEMY_ID 4
 #define ROBOT_LONG_SCALE 4
 #define ROBOT_LAT_SCALE 3
-#define WEAPON_SCALE 7
+#define WEAPON_SCALE 9
+
+#define MAX_PWM_ANG 250
+#define MAX_PWM_LIN 250
+
+#define LIN_ANG_OFFSET_TRADEOFF 30
+
 
 
 using namespace cv;
@@ -205,23 +211,26 @@ private:
 
 
      // PID angular gains
-    double Kp = 0.61 * 100;
-    double Ki = 0.1 * 100;
-    double Kd = 1.27 * 100;
+
+    double angKp = 2.2 * 100;
+    double angKi = 0.1 * 100;
+    double angKd = 1.9 * 100;
     //kd = 1.77 was a good one, kp = 0.6-7
 
-    double setpoint = 0.0; // Desired trajectory angle
-    double error = 0.0;
-    double previous_error = 0.0;
-    double integral = 0.0;
-    double derivative = 0.0;
+    double angsetpoint = 0.0; // Desired trajectory angle
+    double angerror = 0.0;
+    double angprevious_error = 0.0;
+    double angintegral = 0.0;
+    double angderivative = 0.0;
     double output = 0.0;
     int offset = 140; //depends on battery level
-
+     int angoffset;
      // PID linear gains
-    double linKp = 0.5 * 10;
+    double linKp = 1.2 * 10;
     double linKi = 0 * 1;
-    double linKd = 0 * 100;
+    double linKd = 0.6 * 10;
+
+    int LIN_THRESHOLD_ANGLE = 5;
 
     double linsetpoint = 0.0; // Desired distance from point
     double linerror = 0.0;

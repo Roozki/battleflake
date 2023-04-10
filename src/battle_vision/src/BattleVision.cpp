@@ -298,6 +298,7 @@ void BattleVision::processClick(int x, int y){
 
 
     cv::Point2f tmp(x, y);
+
     enemy_position = tmp;
     //cv::line(outputImage, BattleVision::m1, click, cv::Scalar(200, 100, 0), 4);
 
@@ -320,102 +321,99 @@ if(robotTracked){
     std::string temp("ROBOT LOCKED");
     cv::putText(outputImage, temp, robot_locked_point, font2, 2.0, cv::Scalar(0, 200, 0), thickness, lineType, false);
 
-cv::Point2f currTraj(m2.x - m1.x, m2.y - m1.y); //current trajectory
-cv::Point2f desTraj(enemy_position.x - m1.x, enemy_position.y - m1.y); //desired traj
-//cv::Point2f desTraj(hammerHitPoint.x - m1.x, hammerHitPoint.y - m1.y); //desired traj
+    cv::Point2f currTraj(m2.x - m1.x, m2.y - m1.y); //current trajectory
+    cv::Point2f desTraj(enemy_position.x - m1.x, enemy_position.y - m1.y); //desired traj
+    //cv::Point2f desTraj(hammerHitPoint.x - m1.x, hammerHitPoint.y - m1.y); //desired traj
 
 
 
- float dot = desTraj.dot(currTraj);
- float mag1 = norm(currTraj);
- float mag2 = norm(desTraj);
+    float dot = desTraj.dot(currTraj);
+    float mag1 = norm(currTraj);
+    float mag2 = norm(desTraj);
 
- float cos_theta = dot/(mag1 * mag2);
- float angle = fastAtan2(sqrt(1 - cos_theta*cos_theta), cos_theta);
+    float cos_theta = dot/(mag1 * mag2);
+    float angle = fastAtan2(sqrt(1 - cos_theta*cos_theta), cos_theta);
 
-float cross = currTraj.x * desTraj.y - currTraj.y * desTraj.x;
+    float cross = currTraj.x * desTraj.y - currTraj.y * desTraj.x;
 
-std::string wee("angle is: ");
+    std::string wee("angle is: ");
 
-if (cross > 0){
-    wee += std::to_string(-angle);
-    angresetflag = true;
-    cv::putText(outputImage, wee, angle_to_go_point, font1, fontScale, cv::Scalar(0, 100, 0), thickness, lineType, false);
+    if (cross > 0){
+        wee += std::to_string(-angle);
+        angresetflag = true;
+        cv::putText(outputImage, wee, angle_to_go_point, font1, fontScale, cv::Scalar(0, 100, 0), thickness, lineType, false);
    
-    cmd.angular.z = 1;
+        cmd.angular.z = 1;
 
     
-}else if (cross < 0){
-    wee += std::to_string(angle);
-    cv::putText(outputImage, wee, angle_to_go_point, font1, fontScale, cv::Scalar(110, 0, 0), thickness, lineType, false);
-angresetflag = false;
+    }else if (cross < 0){
+        wee += std::to_string(angle);
+        cv::putText(outputImage, wee, angle_to_go_point, font1, fontScale, cv::Scalar(110, 0, 0), thickness, lineType, false);
+        angresetflag = false;
 
-    cmd.angular.z = -0.98;
+        cmd.angular.z = -0.98; //to account for funky monkey motors
 
-}
-if(tempangresetflag != angresetflag){
-        integral = 0;
+    }
+    if(tempangresetflag != angresetflag){
+        angintegral = 0;
         tempangresetflag = angresetflag;
         ROS_ERROR("ang ang ang  RESET");
 
     }
-    error = (setpoint - angle) / 180.0; //setpoint is always 0, dividing by 180 to normilize
+    angerror = (angsetpoint - angle) / 180.0; //setpoint is always 0, dividing by 180 to normilize
     current_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> dt = current_time - previous_time;
-    integral += error * dt.count();
-    derivative = (error - previous_error) / dt.count();
-    previous_error = error;
+    angintegral += angerror * dt.count();
+    angderivative = (angerror - angprevious_error) / dt.count();
+    angprevious_error = angerror;
 
-if(angle > 5){
+    if(angle > LIN_THRESHOLD_ANGLE){
+        angoffset = offset;
+    }else{
+    angoffset = LIN_ANG_OFFSET_TRADEOFF;
 
-    //angular PID
-    
-    cmd.angular.z *= (Kp * error + Ki * integral + Kd * derivative - offset);
+    } 
+        //angular PID
+        cmd.angular.z *= (angKp * angerror + angKi * angintegral + angKd * angderivative - angoffset);
    
 
 
-    float intergral_adj = Ki*integral;
-    float derrivative_adj = Kd * derivative;
-    float proportional_adj = Kp * error;
+        float intergral_adj = angKi*angintegral;
+        float derrivative_adj = angKd * angderivative;
+        float proportional_adj = angKp * angerror;
      
         
-    if(cmd.angular.z < -255){
-        cmd.angular.z = -255;
-    }
-    if(cmd.angular.z > 255){
-        cmd.angular.z = 255;
-    }
-    wee = "PID Control Verbose";
-    cv::putText(outputImage, wee, cv::Point2f(50, 300), font1, 1.3, cv::Scalar(10, 10, 10), thickness, lineType, false);
-    wee = "Poportional adjustment (Kp * Pe): ";
-    wee += std::to_string(proportional_adj);
-    cv::putText(outputImage, wee, proportional_adj_point, font1, 1.1, cv::Scalar(120, 0, 0), thickness, lineType, false);
-    wee = "Intergral adjustment (Ki * I): ";
-    wee += std::to_string(intergral_adj);
-    cv::putText(outputImage, wee, intergral_adj_point, font1, 1.1, cv::Scalar(0, 0, 120), thickness, lineType, false);
-    wee = "Derrivitave adjustment (Kd * D): ";
-    wee += std::to_string(derrivative_adj);
-    cv::putText(outputImage, wee, derrivative_adj_point, font1, 1.1, cv::Scalar(0, 120, 0), thickness, lineType, false);
-    // if(angle <= 4){
-    //     integral = 0;
-    //     //cmd.angular.z = 0;
+        if(cmd.angular.z < -MAX_PWM_ANG){
+            cmd.angular.z = -MAX_PWM_ANG;
+        }
+        if(cmd.angular.z > MAX_PWM_ANG){
+            cmd.angular.z = MAX_PWM_ANG;
+        }
+        wee = "PID Control Verbose";
+        cv::putText(outputImage, wee, cv::Point2f(50, 300), font1, 1.3, cv::Scalar(10, 10, 10), thickness, lineType, false);
+        wee = "Poportional adjustment (Kp * Pe): ";
+        wee += std::to_string(proportional_adj);
+        cv::putText(outputImage, wee, proportional_adj_point, font1, 1.1, cv::Scalar(10, 10, 10), thickness, lineType, false);
+        wee = "Intergral adjustment (Ki * I): ";
+        wee += std::to_string(intergral_adj);
+        cv::putText(outputImage, wee, intergral_adj_point, font1, 1.1, cv::Scalar(10, 10, 10), thickness, lineType, false);
+        wee = "Derrivitave adjustment (Kd * D): ";
+        wee += std::to_string(derrivative_adj);
+        cv::putText(outputImage, wee, derrivative_adj_point, font1, 1.1, cv::Scalar(10, 10, 10), thickness, lineType, false);
+        // if(angle <= 4){
+        //     integral = 0;
+        //     //cmd.angular.z = 0;
 
-    // }
+        // }
    
-}else{
-    cmd.angular.z = 0;
-}
-    if (angle <= 5){
-    cmd.angular.z = 0;
-    integral = 0;
-
+   
     //cv::Point2f currTraj(m2.x - m1.x, m2.y - m1.y); //current trajectory
     cv::Point2f hammerToRobot = m2 - hammerHitPoint;
     cv::Point2f hammer_to_enemy = enemy_position - hammerHitPoint;
     float dot_hammer_to_enemy = hammer_to_enemy.dot(hammerToRobot);
 
 
-   // cv::Point2f projected_hammer_to_enemy = dot_hammer_to_enemy * (hammerHitPoint - m2);
+    //cv::Point2f projected_hammer_to_enemy = dot_hammer_to_enemy * (hammerHitPoint - m2);
     //cv::line(outputImage, projected_hammer_to_enemy, hammerHitPoint, cv::Scalar(100, 100, 100), 5);
     //cv::Point2f displacement_hammer_enemy = hammer_to_enemy - projected_hammer_to_enemy;
 
@@ -423,36 +421,38 @@ if(angle > 5){
 
     current_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> lindt = current_time - previous_time;
-   linintegral += linerror * lindt.count();
+    linintegral += linerror * lindt.count();
     linderivative = (linerror - linprevious_error) / lindt.count();
+    linprevious_error = linerror;
+
     //cmd.linear.x = 1;
     if(linerror < 0){
-        linoffset = abs(offset);
+        linoffset = abs(offset - LIN_ANG_OFFSET_TRADEOFF);
     }else{
-        linoffset = -1* abs(offset);
+        linoffset = -1* abs(offset - LIN_ANG_OFFSET_TRADEOFF);
     }
-    cmd.linear.x = (linKp * linerror + linKi * linintegral + linKd * linderivative + linoffset);
+    if (angle <= LIN_THRESHOLD_ANGLE){
+        //cmd.angular.z = 0;
+       // angintegral = 0;
 
-      if(abs(dot_hammer_to_enemy/1000) < 10){
-          linintegral = 0;
-          ROS_WARN("LIN  LIN    LIN  RESET");
+  
+        cmd.linear.x = (linKp * linerror + linKi * linintegral + linKd * linderivative + linoffset);
+
+        if(abs(dot_hammer_to_enemy/norm(hammerToRobot)) < 7){
+            linintegral = 0;
+            ROS_WARN("LIN  LIN   integrallo LIN  RESET");
      }
 
     //my brain is like broken rn
 
     // derivative = 0;
+    }else{
+        cmd.linear.x = 0; 
+    }
 
-}else{
-    cmd.linear.x = 0; 
-}
-
-    wee = "Angular Effort Output: ";
-    wee += std::to_string(cmd.angular.z);
-    cv::putText(outputImage, wee, cv::Point2f(50, 500), font1, 1.2, cv::Scalar(255, 255, 255), thickness, lineType, false);
-
-   
-
-
+        wee = "Angular Effort Output: ";
+        wee += std::to_string(cmd.linear.x);
+        cv::putText(outputImage, wee, cv::Point2f(50, 500), font1, 1.2, cv::Scalar(255, 255, 255), thickness, lineType, false);
 
 }else{ //if robot marker is not detected
 
@@ -467,20 +467,21 @@ if(angle > 5){
 }
 
 
-if (cmd.linear.x > 300){
-    cmd.linear.x = 300;
+if (cmd.linear.x > MAX_PWM_LIN){
+    cmd.linear.x = MAX_PWM_LIN;
 }
-if(cmd.linear.x < -300){
-    cmd.linear.x = -300;
+if(cmd.linear.x < -MAX_PWM_LIN){
+    cmd.linear.x = -MAX_PWM_LIN;
 }
 //cmd.angular.z = 0;
 cmd_pubber.publish(cmd);
 
-linprevious_error = linerror;
 
 previous_time = current_time;
 
 }
+
+
 void BattleVision::flashWarning(std::string msg, int x, int y, double size, int thick, cv::Scalar colour, int blink_interval, int cycle, int* frameCLK){
 if (blink_interval == 1){
     cv::putText(outputImage, msg, cv::Point2f(x, y), font2, size, colour, thick, lineType, false);
@@ -495,9 +496,6 @@ cv::putText(outputImage, msg, cv::Point2f(x, y), font2, size, colour, thick, lin
 
 }
     }
-
-
-
 
 
 cv::Mat BattleVision::rosToMat(const sensor_msgs::Image::ConstPtr& image) {
