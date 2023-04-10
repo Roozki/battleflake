@@ -49,10 +49,11 @@
 #define ROBOT_LAT_SCALE 3
 #define WEAPON_SCALE 9
 
-#define MAX_PWM_ANG 250
-#define MAX_PWM_LIN 250
+#define MAX_PWM_ANG 240
+#define MAX_PWM_LIN 230
 
 #define LIN_ANG_OFFSET_TRADEOFF 30
+#define MAX_OFFSET 140.0
 
 
 
@@ -101,6 +102,7 @@ private:
      void robot_1_callBack(const bb_msgs::robotStatus::ConstPtr& msg);
      void network_callBack(const bb_msgs::networkStatus::ConstPtr& msg);
      bool areCVPointsClose(const cv::Point2f &point1, const cv::Point2f &point2, float threshold);
+     float mapFloat(float input, float fromMin, float fromMax, float toMin, float toMax);
 
      bool robotTracked = false;
      cv::Point2f m1;
@@ -128,6 +130,7 @@ private:
     void sendCmd();
     void dramaticSetup(); //fancy startup just for fun
 
+     std::string wee; //waa (in other words, a temp string used to print values with cv::puttext)
 
      cv::Mat outputImage;//(window_height, window_width, CV_8UC3, cv::Scalar(0, 0, 0));
 
@@ -193,6 +196,8 @@ private:
           char status = '0';
           int L_speed = 0;
           int R_speed = 0;
+          int L_PWM = 0;
+          int R_PWM = 0;
      };
      Robot robot1;
 
@@ -213,7 +218,7 @@ private:
      // PID angular gains
 
     double angKp = 2.2 * 100;
-    double angKi = 0.1 * 100;
+    double angKi = 0.3 * 100;
     double angKd = 1.9 * 100;
     //kd = 1.77 was a good one, kp = 0.6-7
 
@@ -226,9 +231,9 @@ private:
     int offset = 140; //depends on battery level
      int angoffset;
      // PID linear gains
-    double linKp = 1.2 * 10;
+    double linKp = 0.9 * 1;
     double linKi = 0 * 1;
-    double linKd = 0.6 * 10;
+    double linKd = 0.2 * 1;
 
     int LIN_THRESHOLD_ANGLE = 5;
 

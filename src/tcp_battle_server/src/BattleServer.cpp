@@ -264,14 +264,26 @@ void BattleServer::readRobot(){
     //ROS_WARN("Robot 1 Online");
     robot_msg.status = '1';
   }
+
   int Rspeed_index = dataIn.find('(');
   int Lspeed_index = dataIn.find('a');
   int hammer_index = dataIn.find('b');
 
- // int rspeed = std::stoi(dataIn.substr(Rspeed_index, Lspeed_index));
-  //int lspeed = std::stoi(dataIn.substr(Lspeed_index, hammer_index));
-  //robot_msg.R_speed = rspeed;
-  //robot_msg.L_speed = lspeed;
+   if (Rspeed_index != std::string::npos && Lspeed_index != std::string::npos && hammer_index != std::string::npos) {
+    int rspeed_length = Lspeed_index - Rspeed_index - 1;
+    int lspeed_length = hammer_index - Lspeed_index - 1;
+
+    int rspeed = std::stoi(dataIn.substr(Rspeed_index + 1, rspeed_length));
+    int lspeed = std::stoi(dataIn.substr(Lspeed_index + 1, lspeed_length));
+ robot_msg.R_speed = rspeed;
+  robot_msg.L_speed = lspeed;
+    
+  }else{
+  robot_msg.R_speed = -1;
+  robot_msg.L_speed = -1;
+  }
+  
+ 
 
   
   robot_status_pub.publish(robot_msg);
