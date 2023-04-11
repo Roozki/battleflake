@@ -1,4 +1,6 @@
+#include "sys/_types.h"
 #include "stdint.h"
+#include <FastLED.h>
 //#include "GY521.h"
 #include <WiFi.h>
 #include <Arduino.h>
@@ -11,6 +13,8 @@
 #define MOT_PIN_L_2 18
 #define MOT_PIN_L_PWM 17
 
+
+#define HAMMER_PWR_PIN 35
 #define HAMMER_PIN 16 
 
 //right drive motor
@@ -19,10 +23,68 @@
 #define MOT_PIN_R_PWM 19
 
 //encoders for wheel odometry
-#define MOT_ENC_A_PIN_L 32
-#define MOT_ENC_B_PIN_L 33
-#define MOT_ENC_A_PIN_R 26
-#define MOT_ENC_B_PIN_R 27
+#define MOT_ENC_A_PIN_L 99//32
+#define MOT_ENC_B_PIN_L 99//33
+#define MOT_ENC_A_PIN_R 99//26
+#define MOT_ENC_B_PIN_R 99//27
+
+  //lighting
+#define NUM_LEDS_PER_STRIP 8
+#define NUM_STRIPS 6
+#define NUM_LEDS_B 8
+#define NUM_LEDS_BL 8
+#define NUM_LEDS_BR 8
+#define NUM_LEDS_R 8
+#define NUM_LEDS_L 8
+#define NUM_LEDS_F 8
+
+#define DATA_LEDS_B 33
+#define DATA_LEDS_BL 32
+#define DATA_LEDS_BR 26
+#define DATA_LEDS_L 27
+#define DATA_LEDS_R 25
+#define DATA_LEDS_F 13
+
+
+  CRGB ledsB[NUM_LEDS_B];
+  CRGB ledsBL[NUM_LEDS_BL];
+  CRGB ledsBR[NUM_LEDS_BR];
+  CRGB ledsL[NUM_LEDS_L];
+  CRGB ledsR[NUM_LEDS_R];
+  CRGB ledsF[NUM_LEDS_F];
+
+
+
+//offload led stuff to other core
+TaskHandle_t ledTaskHandle;
+
+
+// void ledTask(void *parameter) {
+
+//   CRGB ledsB[NUM_LEDS_B];
+//   CRGB ledsBL[NUM_LEDS_BL];
+//   CRGB ledsBR[NUM_LEDS_BR];
+//   CRGB ledsL[NUM_LEDS_L];
+//   CRGB ledsR[NUM_LEDS_R];
+//   CRGB ledsF[NUM_LEDS_F];
+//   FastLED.addLeds<WS2812B, DATA_LEDS_B, GRB>(ledsB, NUM_LEDS_B);
+//   FastLED.addLeds<WS2812B, DATA_LEDS_BL, GRB>(ledsBL, NUM_LEDS_BL);
+//   FastLED.addLeds<WS2812B, DATA_LEDS_BR, GRB>(ledsBR, NUM_LEDS_BR);
+//   FastLED.addLeds<WS2812B, DATA_LEDS_L, GRB>(ledsL, NUM_LEDS_L);
+//   FastLED.addLeds<WS2812B, DATA_LEDS_R, GRB>(ledsR, NUM_LEDS_R);
+//   FastLED.addLeds<WS2812B, DATA_LEDS_F, GRB>(ledsF, NUM_LEDS_F);
+//   FastLED.setBrightness(150); // Adjust the brightness, value between 0 and 255
+ 
+// while(true){
+//  rainbowCycle(ledsB, NUM_LEDS_B, 0, 20, 2, 10);
+//  rainbowCycle(ledsBL, NUM_LEDS_BL, 0, 20, 2, 10);
+// rainbowCycle(ledsBR, NUM_LEDS_BR, 0, 20, 2, 10);
+// rainbowCycle(ledsL, NUM_LEDS_L, 0, 20, 2, 10);
+// rainbowCycle(ledsR, NUM_LEDS_R, 0, 20, 2, 10);
+// rainbowCycle(ledsF, NUM_LEDS_F, 0, 20, 2, 10);
+// }
+// }
+
 
 #define ENC_STEPS_PER_SHAFT_ROTATION 1856 //64 per revolution, with 30:1 gear ratio
 
@@ -60,6 +122,7 @@ Servo hammer;
 int pwrL;
 int pwrR;
 int hammerPos; //hammer microsecond pulse width for PWM
+int hammerOffCount = 0;
 
 void sendCmd();
 
@@ -89,6 +152,30 @@ int speed_prev_time = 0;
 
 
 int counter;
+
+//light timings 
+unsigned long prev_B_MS = 0;
+unsigned long prev_BR_MS = 0;
+unsigned long prev_BL_MS = 0;
+unsigned long prev_L_MS = 0;
+unsigned long prev_R_MS = 0;
+unsigned long prev_F_MS = 0;
+
+bool b_flag = true;
+
+bool nonBlockingDelay(unsigned long &previousMillis, unsigned long interval) {
+  unsigned long currentMillis = millis();
+  if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+    return true;
+  }
+  return false;
+}
+
+
+    static unsigned long previousMillis = 0;
+
+
 
 //steppers
 

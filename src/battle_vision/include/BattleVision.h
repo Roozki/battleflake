@@ -53,8 +53,9 @@
 #define MAX_PWM_LIN 230
 
 #define LIN_ANG_OFFSET_TRADEOFF 30
-#define MAX_OFFSET 140.0
+#define MAX_OFFSET 130.0 //bump up if battery is low, bump back down to 140 at 4.00V/Cell
 
+#define YOUR_MOM "MILF"
 
 
 using namespace cv;
@@ -218,7 +219,7 @@ private:
      // PID angular gains
 
     double angKp = 2.2 * 100;
-    double angKi = 0.3 * 100;
+    double angKi = 0.5 * 100;
     double angKd = 1.9 * 100;
     //kd = 1.77 was a good one, kp = 0.6-7
 
@@ -231,9 +232,9 @@ private:
     int offset = 140; //depends on battery level
      int angoffset;
      // PID linear gains
-    double linKp = 0.9 * 1;
-    double linKi = 0 * 1;
-    double linKd = 0.2 * 1;
+    double linKp = 1.3 * 1;
+    double linKi = 0.2 * 1;
+    double linKd = 0.4 * 1;
 
     int LIN_THRESHOLD_ANGLE = 5;
 

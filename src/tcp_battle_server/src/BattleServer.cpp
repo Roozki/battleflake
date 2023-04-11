@@ -10,7 +10,7 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
     ros::NodeHandle nh;
     //ros::NodeHandle private_nh("~");
 
-    setup(vision_mode);
+    setup(joy_mode);
     // Obtains character from the parameter server (or launch file), sets '!' as default
     //std::string parameter_name    = "character";
     //std::string default_character = "!";

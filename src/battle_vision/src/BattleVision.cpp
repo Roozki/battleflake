@@ -28,7 +28,7 @@ BattleVision::BattleVision(int argc, char **argv, std::string node_name) {
     detectorParams = cv::aruco::DetectorParameters::create();
     dictionary =  cv::makePtr<cv::aruco::Dictionary>(cv::aruco::getPredefinedDictionary(cv::aruco::DICT_4X4_50));
      // Adjust the ArUco parameters
-    //detectorParams->adaptiveThreshConstant = 2;
+    detectorParams->adaptiveThreshConstant = 5;
     detectorParams->minMarkerPerimeterRate = 0.01;
     detectorParams->maxMarkerPerimeterRate = 0.1;
     // detectorParams->polygonalApproxAccuracyRate = 0.06;
@@ -398,7 +398,7 @@ if(robotTracked){
     // angoffset = LIN_ANG_OFFSET_TRADEOFF;
 
     // } 
-    angoffset = mapFloat(angle, 0.0, 30.0, 0, MAX_OFFSET); //GOAT!!!
+    angoffset = mapFloat(angle, -5.0, 30.0, 0, MAX_OFFSET); //GOAT!!!
     linoffset = mapFloat(angle, 0.0, 30.0, MAX_OFFSET, 0); 
 
 
@@ -450,7 +450,7 @@ if(robotTracked){
   
         cmd.linear.x = (linKp * linerror + linKi * linintegral + linKd * linderivative + linoffset);
 
-        if(abs(dot_hammer_to_enemy/norm(hammerToRobot)) < 7){
+        if(abs(dot_hammer_to_enemy/norm(hammerToRobot)) < 10){
             linintegral = 0;
             ROS_WARN("LIN  LIN   integrallo LIN  RESET");
      }
