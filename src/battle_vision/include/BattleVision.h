@@ -47,7 +47,7 @@
 #define ENEMY_ID 4
 #define ROBOT_LONG_SCALE 4
 #define ROBOT_LAT_SCALE 3
-#define WEAPON_SCALE 9
+#define WEAPON_SCALE 21
 
 #define MAX_PWM_ANG 240
 #define MAX_PWM_LIN 230
@@ -188,7 +188,7 @@ private:
           int slip;
      
      //flags
-     bool started = true;
+     bool started = false;
      
 
 
@@ -219,7 +219,7 @@ private:
      // PID angular gains
 
     double angKp = 2.2 * 100;
-    double angKi = 0.5 * 100;
+    double angKi = 0.8 * 100;
     double angKd = 1.9 * 100;
     //kd = 1.77 was a good one, kp = 0.6-7
 
@@ -233,7 +233,7 @@ private:
      int angoffset;
      // PID linear gains
     double linKp = 1.3 * 1;
-    double linKi = 0.2 * 1;
+    double linKi = 0.7 * 1;
     double linKd = 0.4 * 1;
 
     int LIN_THRESHOLD_ANGLE = 5;

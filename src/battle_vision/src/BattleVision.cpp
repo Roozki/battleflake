@@ -212,7 +212,7 @@ std::vector<int> BattleVision::processMarkers(const cv::Mat& image) {
                     cv::line(outputImage, BattleVision::m1, enemy_position, cv::Scalar(200, 100, 0), 4);
                     //frameCLK_5.threshold = 40;
                       //  frameCLK_5.resetCheck();
-                        if(areCVPointsClose(hammerHitPoint, enemy_position, 30.0)){
+                        if(areCVPointsClose(hammerHitPoint, enemy_position, 60.0)){
                             
                             // Draw the 'X' on the hammerhit point
                             std::random_device rd;
@@ -320,7 +320,7 @@ void BattleVision::processClick(int x, int y){
 
     cv::Point2f tmp(x, y);
 
-    enemy_position = tmp;
+    //enemy_position = tmp;
     //cv::line(outputImage, BattleVision::m1, click, cv::Scalar(200, 100, 0), 4);
 
     return;
@@ -468,25 +468,25 @@ if(robotTracked){
         float linderrivative_adj = linKd * linderivative;
         float linproportional_adj = linKp * linerror;
         wee = "PID Control Verbose";
-        cv::putText(outputImage, wee, cv::Point2f(50, 300), font1, 1.3, cv::Scalar(10, 10, 10), thickness, lineType, false);
+        cv::putText(outputImage, wee, cv::Point2f(50, 300), font1, 1.3, cv::Scalar(210, 210, 210), thickness, lineType, false);
         wee = "Linear P: ";
         wee += std::to_string(linproportional_adj);
-        cv::putText(outputImage, wee, cv::Point2f(50, 350), font1, 1.1, cv::Scalar(10, 10, 10), thickness, lineType, false);
+        cv::putText(outputImage, wee, cv::Point2f(50, 350), font1, 1.1, cv::Scalar(210, 210, 210), thickness, lineType, false);
         wee = "Linear I: ";
         wee += std::to_string(linintergral_adj);
-        cv::putText(outputImage, wee, cv::Point2f(50, 400), font1, 1.1, cv::Scalar(10, 10, 10), thickness, lineType, false);
+        cv::putText(outputImage, wee, cv::Point2f(50, 400), font1, 1.1, cv::Scalar(210, 210, 210), thickness, lineType, false);
         wee = "Linear D: ";
         wee += std::to_string(linderrivative_adj);
-        cv::putText(outputImage, wee, cv::Point2f(50, 450), font1, 1.3, cv::Scalar(10, 10, 10), thickness, lineType, false);
+        cv::putText(outputImage, wee, cv::Point2f(50, 450), font1, 1.3, cv::Scalar(210, 210, 210), thickness, lineType, false);
         wee = "Angular P: ";
         wee += std::to_string(angproportional_adj);
-        cv::putText(outputImage, wee, cv::Point2f(50, 500), font1, 1.1, cv::Scalar(10, 10, 10), thickness, lineType, false);
+        cv::putText(outputImage, wee, cv::Point2f(50, 500), font1, 1.1, cv::Scalar(210, 210, 210), thickness, lineType, false);
         wee = "Angular I: ";
         wee += std::to_string(angintergral_adj);
-        cv::putText(outputImage, wee, cv::Point2f(50, 550), font1, 1.1, cv::Scalar(10, 10, 10), thickness, lineType, false);
+        cv::putText(outputImage, wee, cv::Point2f(50, 550), font1, 1.1, cv::Scalar(210, 210, 210), thickness, lineType, false);
         wee = "Angular D: ";
         wee += std::to_string(angderrivative_adj);
-        cv::putText(outputImage, wee, cv::Point2f(50, 600), font1, 1.1, cv::Scalar(10, 10, 10), thickness, lineType, false);
+        cv::putText(outputImage, wee, cv::Point2f(50, 600), font1, 1.1, cv::Scalar(210, 210, 210), thickness, lineType, false);
         // if(angle <= 4){
         //     integral = 0;
         //     //cmd.angular.z = 0;
