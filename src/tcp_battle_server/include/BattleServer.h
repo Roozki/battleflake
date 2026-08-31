@@ -76,6 +76,7 @@ private:
     ros::Subscriber joy_sub;
     ros::Subscriber vision_sub;
 
+    ros::Publisher cmd_veller_pub;
     ros::Publisher network_status_pub;
     ros::Publisher robot_status_pub;
 

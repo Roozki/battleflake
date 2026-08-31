@@ -10,7 +10,7 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
     ros::NodeHandle nh;
     //ros::NodeHandle private_nh("~");
 
-    setup(vision_mode);
+    setup(joy_mode);
     // Obtains character from the parameter server (or launch file), sets '!' as default
     //std::string parameter_name    = "character";
     //std::string default_character = "!";
@@ -24,6 +24,10 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
 
     vision_sub =
     nh.subscribe("robot1_cmd_vel", 1, &BattleServer::VisionCMDCallback, this);
+
+    cmd_veller_pub = 
+    nh.advertise<geometry_msgs::Twist>("/beta/beta_wagon_controller/cmd_vel", 1);
+
     
 
     // Setup Publisher(s)
@@ -69,35 +73,35 @@ BattleServer::BattleServer(int argc, char **argv, std::string node_name) {
 bb_msgs::networkStatus net_msg;
 
 
-  if (bind(sockfd, (struct sockaddr *) &serv_addr,
-    sizeof(serv_addr)) < 0){
-   ROS_ERROR("ERROR on binding, killall -9/-15 might help?");
-    net_msg.status = false;
-      }else{
-   ROS_INFO("Socket was free, bind successful");
-    net_msg.status = true;
-      }
-        listen(sockfd,5);
+  // if (bind(sockfd, (struct sockaddr *) &serv_addr,
+  //   sizeof(serv_addr)) < 0){
+  //  ROS_ERROR("ERROR on binding, killall -9/-15 might help?");
+  //   net_msg.status = false;
+  //     }else{
+  //  ROS_INFO("Socket was free, bind successful");
+  //   net_msg.status = true;
+  //     }
+  //       listen(sockfd,5);
 
 
-  clilen = sizeof(serv_addr);
+  // clilen = sizeof(serv_addr);
 
-   newsockfd = accept(sockfd, 
-    (struct sockaddr *) &serv_addr, &clilen);
-     if (newsockfd < 0) 
-          ROS_ERROR("ERROR on accept");
+  //  newsockfd = accept(sockfd, 
+  //   (struct sockaddr *) &serv_addr, &clilen);
+  //    if (newsockfd < 0) 
+  //         ROS_ERROR("ERROR on accept");
 
-     ROS_INFO("server: got connection from %s port %d\n",
-            inet_ntoa(serv_addr.sin_addr), ntohs(serv_addr.sin_port));
+  //    ROS_INFO("server: got connection from %s port %d\n",
+  //           inet_ntoa(serv_addr.sin_addr), ntohs(serv_addr.sin_port));
 
 
-  network_status_pub.publish(net_msg);
+  // network_status_pub.publish(net_msg);
 
-     n = read(newsockfd,buffer,255);
-     if (n < 0) ROS_ERROR("ERROR reading from socket");
-     ROS_INFO("Client has connected: %s\n",buffer);
+  //    n = read(newsockfd,buffer,255);
+  //    if (n < 0) ROS_ERROR("ERROR reading from socket");
+  //    ROS_INFO("Client has connected: %s\n",buffer);
 
-    //  close(newsockfd);
+  //   //  close(newsockfd);
     //  close(sockfd);
 }
 
@@ -130,6 +134,7 @@ void BattleServer::setup(int mode) {
 void BattleServer::JoyCallback(const sensor_msgs::Joy::ConstPtr& msg) {//this callback is way too long i think
   //  ROS_INFO("Received joy message");
   //linear speed
+  geometry_msgs::Twist patrolmsg;
   int lspeed = 1;
   int rspeed = 1;
   //axes
@@ -153,6 +158,9 @@ void BattleServer::JoyCallback(const sensor_msgs::Joy::ConstPtr& msg) {//this ca
  const int thebigone = msg->buttons[8];
  const int lstickB = msg->buttons[9];
  const int rstickB = msg->buttons[9];
+
+patrolmsg.linear.x = lsticky;
+patrolmsg.angular.z = lstickx;
   // switch (A - B){
   //   case(1):
   //     cartacc = cartacc + 0.1;
@@ -182,29 +190,30 @@ void BattleServer::JoyCallback(const sensor_msgs::Joy::ConstPtr& msg) {//this ca
     //float PWR = mapFloat(rsticky, 1.0, -1.0, 0.0, 100.0);
    // float REVERSE = mapFloat(ltrig, 1.0, -1.0, 0.0, 100.0);
 
-    float maphammer = mapFloat(rtrig, 1.0, -1.0, 0.0, 50.0);
-    int hammer = maphammer;
+  //   float maphammer = mapFloat(rtrig, 1.0, -1.0, 0.0, 50.0);
+  //   int hammer = maphammer;
 
 
-    int PWR1yL = (rsticky + lsticky) * 300;
-    int PWR1zR = (rstickx + lstickx) * 300;
+  //   int PWR1yL = (rsticky + lsticky) * 300;
+  //   int PWR1zR = (rstickx + lstickx) * 300;
     
-  if(PWR1yL > 300){
-    PWR1yL = 300;
-  } 
-  if(PWR1yL < -300){
-    PWR1yL = -300;
-  }
-  if(PWR1zR > 300){
-    PWR1zR = 300;
-  } 
-  if(PWR1zR < -300){
-    PWR1zR = -300;
-  }   
+  // if(PWR1yL > 300){
+  //   PWR1yL = 300;
+  // } 
+  // if(PWR1yL < -300){
+  //   PWR1yL = -300;
+  // }
+  // if(PWR1zR > 300){
+  //   PWR1zR = 300;
+  // } 
+  // if(PWR1zR < -300){
+  //   PWR1zR = -300;
+  // }   
    
-
+cmd_veller_pub.publish(patrolmsg);
    //ROS_INFO("%i", cmd.mode[S1]);
-   sendCmds(PWR1yL, PWR1zR, hammer);
+   //sendCmds(PWR1yL, PWR1zR, hammer);
+
     //ros::Rate loop_rate(5); //send rate in hz, slows down sending cmds even if joy node is rate set
 
      //loop_rate.sleep();

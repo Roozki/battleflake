@@ -43,14 +43,14 @@
 // #define kd 0.1
 
 //definitions
-#define ROBOT_ID 3
+#define ROBOT_ID 6
 #define ENEMY_ID 4
 #define ROBOT_LONG_SCALE 4
 #define ROBOT_LAT_SCALE 3
 #define WEAPON_SCALE 21
 
 #define MAX_PWM_ANG 240
-#define MAX_PWM_LIN 230
+#define MAXPWM_LIN 230
 
 #define LIN_ANG_OFFSET_TRADEOFF 30
 #define MAX_OFFSET 130.0 //bump up if battery is low, bump back down to 140 at 4.00V/Cell
